@@ -1,0 +1,247 @@
+﻿@model IEnumerable<WebBaoDienTu.Models.User>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+}
+
+<div class="container-fluid my-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h1 class="mb-3"><i class="fas fa-users me-2"></i>Quản lý người dùng</h1>
+        </div>
+        <div class="col-auto">
+            <button id="addUserBtn" class="btn btn-success">
+                <i class="fas fa-user-plus me-1"></i> Thêm người dùng mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter form -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body bg-light">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" name="fullName" class="form-control" placeholder="Tên người dùng" value="@ViewData["FullNameFilter"]">
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input type="email" name="email" class="form-control" placeholder="Email" value="@ViewData["EmailFilter"]">
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex">
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        <i class="fas fa-search me-1"></i> Tìm kiếm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users table -->
+    <div class="card border-0 shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Họ và tên</th>
+                            <th>Email</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr data-user-id="@item.UserId" class="@(item.IsDeleted ? "table-danger" : "")">
+                                <td>@item.UserId</td>
+                                <td class="user-name">@item.FullName</td>
+                                <td class="user-email">@item.Email</td>
+                                <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="user-status">
+                                    @if (item.IsDeleted)
+                                    {
+                                        <span class="badge bg-danger">Đã xóa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info">Hoạt động</span>
+                                    }
+                                </td>
+                                <td class="user-actions">
+                                    @if (item.IsDeleted)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-success restore-user-btn"
+                                                data-user-id="@item.UserId">
+                                            <i class="fas fa-trash-restore"></i> Khôi phục
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary edit-user-btn" data-user-id="@item.UserId">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <a asp-action="Details" asp-route-id="@item.UserId" class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-info-circle"></i>
+                                            </a>
+                                            <a asp-action="UserActivity" asp-route-id="@item.UserId" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-history"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger delete-user-btn"
+                                                    data-user-id="@item.UserId">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Không tìm thấy người dùng nào phù hợp với điều kiện tìm kiếm.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Anti-forgery token for AJAX requests -->
+@Html.AntiForgeryToken()
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editUserModalLabel"><i class="fas fa-user-edit me-2"></i>Cập nhật người dùng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="edit-userId" name="UserId" />
+
+                    <div class="mb-3">
+                        <label for="edit-fullName" class="form-label">Họ và tên</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="edit-fullName" name="FullName" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" class="form-control" id="edit-email" name="Email" required>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3 bg-light">
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="changePasswordCheck" name="ChangePassword">
+                                <label class="form-check-label" for="changePasswordCheck">
+                                    <i class="fas fa-key me-1"></i> Đổi mật khẩu cho người dùng
+                                </label>
+                            </div>
+
+                            <div id="passwordSection" class="mb-3" style="display: none;">
+                                <label for="edit-newPassword" class="form-label">Mật khẩu mới</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control" id="edit-newPassword" name="NewPassword">
+                                </div>
+                                <div class="form-text">Mật khẩu phải từ 6-8 ký tự, chứa ít nhất một chữ cái in hoa và một số.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Lưu thay đổi
+                            </button>
+                            <button type="button" class="btn btn-warning" onclick="resetPassword(document.getElementById('edit-userId').value)">
+                                <i class="fas fa-key me-1"></i> Đặt lại mật khẩu
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="createUserModalLabel"><i class="fas fa-user-plus me-2"></i>Tạo người dùng mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div id="create-alert" class="alert alert-danger" style="display: none;"></div>
+                    
+                    <div class="mb-3">
+                        <label for="create-fullName" class="form-label">Họ và tên</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="create-fullName" name="FullName" required>
+                        </div>
+                        <div class="invalid-feedback">Vui lòng nhập họ và tên.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="create-email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" class="form-control" id="create-email" name="Email" required>
+                        </div>
+                        <div class="invalid-feedback">Vui lòng nhập email hợp lệ.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="create-password" class="form-label">Mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control" id="create-password" name="Password" required>
+                        </div>
+                        <div class="form-text">Mật khẩu phải có 6-8 ký tự, bao gồm chữ hoa, chữ thường và số.</div>
+                        <div class="invalid-feedback">Mật khẩu không hợp lệ.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i> Tạo mới
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Toast container -->
+<div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1100; margin-top: 60px;"></div>
+
+
+@section Scripts {
+    <script src="~/js/Admin/user-management.js"></script>
+}

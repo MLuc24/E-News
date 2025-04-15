@@ -1,0 +1,263 @@
+﻿/* Update wwwroot/css/global-button-effects.css */
+
+/* Button Base Styles */
+.btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    gap: 8px;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+    text-align: center; /* Ensure text is centered */
+}
+
+/* Double size for password change button */
+#changePasswordForm .btn {
+    font-size: 1.4rem;
+    font-weight: 600;
+    min-height: 70px;
+    padding: 16px 30px;
+    margin-top: 15px;
+    width: 100%; /* Full width */
+    max-width: 100%; /* Ensure it doesn't overflow */
+}
+
+/* Animation for icons in modal headers like MyNews delete confirmation */
+.icon-spin {
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Add animation class for modal titles */
+.modal-title-animated i {
+    animation: pulse-rotate 1.5s infinite alternate;
+}
+
+@keyframes pulse-rotate {
+    0% {
+        transform: scale(1) rotate(0deg);
+    }
+    50% {
+        transform: scale(1.2) rotate(10deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* Double size for login/register buttons */
+.btn-login, .btn-register {
+    font-size: 1.3rem;
+    font-weight: 600;
+    min-height: 70px;
+    padding: 16px 30px;
+    margin-top: 10px;
+}
+
+/* Login/Register modal buttons */
+.login-modal .btn,
+.register-modal .btn {
+    min-height: 70px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+/* Restore search bar to original */
+.btn-search {
+    height: 40px !important; /* Override the min-height from global buttons */
+    min-height: 40px;
+    padding: 0 20px;
+    font-size: 0.9rem;
+    border-radius: 0 25px 25px 0;
+    transition: all 0.3s ease;
+}
+
+/* Restore index page buttons to original size */
+.news-table .btn,
+.news-table .btn-sm,
+.news-card-actions .btn,
+.action-buttons .btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    min-height: 32px;
+    min-width: auto;
+}
+
+/* Button Variations */
+.btn-primary {
+    background: linear-gradient(45deg, #5C7AEA, #4361ee);
+    color: white;
+}
+
+.btn-info {
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    color: white;
+}
+
+.btn-warning {
+    background: linear-gradient(45deg, #f1c40f, #e67e22);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    color: white;
+}
+
+.btn-success {
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    color: white;
+}
+
+.btn-secondary {
+    background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+    color: white;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn:hover::before {
+    width: 300%;
+    height: 300%;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn i {
+    font-size: 1rem;
+}
+
+/* Small buttons */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    min-height: auto;
+}
+
+/* Large buttons */
+.btn-lg {
+    padding: 12px 24px;
+    font-size: 1.1rem;
+}
+
+.btn-hover-effect:hover {
+    filter: brightness(110%);
+}
+
+/* Enhanced share buttons */
+.share-btn {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    min-width: 120px;
+}
+
+/* Ripple Effect */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Toast Animation */
+.toast {
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    animation: slideInDown 0.5s ease-out forwards;
+    border: none;
+}
+
+    .toast.bg-success {
+        background: linear-gradient(45deg, #2ecc71, #27ae60) !important;
+    }
+
+    .toast.bg-danger {
+        background: linear-gradient(45deg, #e74c3c, #c0392b) !important;
+    }
+
+    .toast .toast-body {
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .toast .fas {
+        font-size: 1.2rem;
+        margin-right: 0.75rem;
+    }
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Modal Animation */
+.animate-modal {
+    animation: slideInUp 0.4s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,37 @@
+﻿/* Định dạng thông tin meta với khoảng cách và màu chữ nhạt */
+.meta-info {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    color: #6c757d;
+}
+
+/* Định dạng hiển thị thời gian và tác giả */
+.meta-time, .meta-author {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Định dạng container hình ảnh trong chi tiết tin tức */
+#detailsImageContainer img {
+    max-height: 300px;
+    object-fit: contain;
+    margin-bottom: 15px;
+}
+
+/* Căn giữa dọc nội dung trong các ô của bảng */
+.table td {
+    vertical-align: middle;
+}
+
+/* Định dạng nhóm nút trong bảng tin tức */
+#newsTable .btn-group {
+    display: flex;
+    gap: 5px;
+}
+
+/* Hiệu ứng mờ dần cho các hàng trong bảng tin tức */
+#newsTable tr {
+    transition: opacity 0.3s ease;
+}

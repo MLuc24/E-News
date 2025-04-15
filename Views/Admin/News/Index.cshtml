@@ -1,0 +1,451 @@
+@model IEnumerable<WebBaoDienTu.Models.News>
+
+@{
+    ViewData["Title"] = "Quản lý tin tức";
+    Layout = "_Layout";
+}
+
+<!-- Liên kết CSS và thư viện -->
+<link rel="stylesheet" href="~/css/news-index.css" asp-append-version="true" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+<link rel="stylesheet" href="~/css/modal-animations.css" asp-append-version="true" />
+<!-- DateRangePicker CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<h2 class="page-title">@ViewData["Title"]</h2>
+
+<p class="text-center">
+    <a asp-controller="AdminNews" asp-action="Create" class="btn btn-primary create-btn"><i class="fas fa-plus"></i> Đăng tin mới</a>
+</p>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Bộ lọc bên trái -->
+        <div class="col-md-3">
+            <div class="filter-container">
+                <div class="filter-header">
+                    <h3><i class="fas fa-filter"></i> Bộ lọc nâng cao</h3>
+                </div>
+                <form method="get" asp-controller="AdminNews" asp-action="Index" id="advancedFilterForm">
+                    <div class="filter-group">
+                        <div class="filter-title">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </div>
+                        <div class="filter-body">
+                            <div class="form-group mb-3">
+                                <label for="Title"><i class="fas fa-heading"></i> Tiêu đề</label>
+                                <input type="text" name="Title" id="Title" class="form-control" placeholder="Nhập tiêu đề..." value="@ViewData["TitleFilter"]" />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="Author"><i class="fas fa-user-edit"></i> Tác giả</label>
+                                <input type="text" name="Author" id="Author" class="form-control" placeholder="Nhập tên tác giả..." value="@ViewData["AuthorFilter"]" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-title">
+                            <i class="fas fa-calendar-alt"></i> Thời gian đăng
+                        </div>
+                        <div class="filter-body">
+                            <div class="form-group mb-3">
+                                <input type="text" id="dateRangePicker" class="form-control" placeholder="Chọn khoảng thời gian" />
+                                <input type="hidden" name="StartDate" id="StartDate" value="@ViewData["StartDateFilter"]" />
+                                <input type="hidden" name="EndDate" id="EndDate" value="@ViewData["EndDateFilter"]" />
+                            </div>
+                            <div class="date-quick-select">
+                                <button type="button" class="btn btn-outline-secondary btn-sm date-preset" data-range="today">Hôm nay</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm date-preset" data-range="thisWeek">Tuần này</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm date-preset" data-range="thisMonth">Tháng này</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-title">
+                            <i class="fas fa-clipboard-check"></i> Trạng thái
+                        </div>
+                        <div class="filter-body">
+                            <div class="status-radio">
+                                <div class="form-check animated-radio">
+                                    <input class="form-check-input" type="radio" name="ApprovalStatus" id="allStatus" value="" checked="@(string.IsNullOrEmpty(ViewData["ApprovalStatusFilter"]?.ToString()))" />
+                                    <label class="form-check-label" for="allStatus">
+                                        <i class="fas fa-globe"></i> Tất cả
+                                    </label>
+                                </div>
+                                <div class="form-check animated-radio">
+                                    <input class="form-check-input" type="radio" name="ApprovalStatus" id="approved" value="approved" checked="@(ViewData["ApprovalStatusFilter"]?.ToString() == "approved")" />
+                                    <label class="form-check-label" for="approved">
+                                        <i class="fas fa-check-circle text-success"></i> Đã duyệt
+                                    </label>
+                                </div>
+                                <div class="form-check animated-radio">
+                                    <input class="form-check-input" type="radio" name="ApprovalStatus" id="pending" value="pending" checked="@(ViewData["ApprovalStatusFilter"]?.ToString() == "pending")" />
+                                    <label class="form-check-label" for="pending">
+                                        <i class="fas fa-clock text-warning"></i> Chờ duyệt
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-title">
+                            <i class="fas fa-folder-open"></i> Danh mục
+                        </div>
+                        <div class="filter-body">
+                            <select name="CategoryId" class="form-select" id="CategoryId">
+                                <option value="">-- Tất cả danh mục --</option>
+                                @foreach (var category in ViewBag.Categories ?? new List<SelectListItem>())
+                                {
+                                    <option value="@category.Value" selected="@(ViewData["CategoryFilter"]?.ToString() == category.Value)">@category.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary w-100 filter-btn">
+                            <i class="fas fa-search"></i> Áp dụng bộ lọc
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary w-100 mt-2 reset-btn" id="resetFilters">
+                            <i class="fas fa-redo"></i> Đặt lại bộ lọc
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bảng danh sách tin tức bên phải -->
+        <div class="col-md-9">
+            <div class="news-container d-flex justify-content-center">
+                <div class="col-md-12">
+                    <div class="news-summary mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="summary-stats">
+                                        <span class="summary-badge total">
+                                            <i class="fas fa-newspaper"></i> Tổng tin: <span id="totalNewsCount">@Model.Count()</span>
+                                        </span>
+                                        <span class="summary-badge approved">
+                                            <i class="fas fa-check-circle"></i> Đã duyệt: <span id="approvedCount">@Model.Count(n => n.IsApproved)</span>
+                                        </span>
+                                        <span class="summary-badge pending">
+                                            <i class="fas fa-clock"></i> Chờ duyệt: <span id="pendingCount">@Model.Count(n => !n.IsApproved)</span>
+                                        </span>
+                                    </div>
+                                    <div class="active-filters" id="activeFilters">
+                                        <!-- Hiển thị các bộ lọc đang áp dụng -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="news-table table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tiêu đề</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Danh mục</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr id="news-@item.NewsId">
+                                        <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                                        <td class="text-center">
+                                            @if (item.IsApproved)
+                                            {
+                                                <span class="badge bg-success"><i class="fas fa-check me-1"></i> Đã duyệt</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Chờ duyệt</span>
+                                            }
+                                        </td>
+                                        <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
+                                        <td>@Html.DisplayFor(modelItem => item.Category.CategoryName)</td>
+                                        <td class="action-buttons text-center">
+                                            <button type="button" class="btn btn-info btn-sm" onclick="showDetailsModal(@item.NewsId)">
+                                                <i class="fas fa-info-circle"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="showDeleteModal(@item.NewsId)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            @if (!item.IsApproved)
+                                            {
+                                                <form asp-controller="AdminNews" asp-action="Approve" asp-route-id="@item.NewsId" method="post" class="d-inline approve-form">
+                                                    <button type="button" class="btn btn-success btn-sm" onclick="showApproveModal(@item.NewsId)">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate-modal">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel"><i class="fas fa-trash-alt me-2"></i> Xác nhận xóa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h3 class="fw-bold text-center" id="newsTitle"></h3>
+                <p class="text-muted text-center" id="newsDetails"></p>
+                <div id="newsImageContainer" class="text-center mb-3"></div>
+                <div class="alert alert-danger fw-bold text-center animate-alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác!
+                </div>
+                <input type="hidden" id="deleteNewsId" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="deleteNews()"><i class="fas fa-trash me-1"></i> Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Confirmation Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate-modal">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="approveModalLabel"><i class="fas fa-check-circle me-2"></i> Xác nhận duyệt</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h3 class="fw-bold text-center" id="approveNewsTitle"></h3>
+                <p class="text-muted text-center" id="approveNewsDetails"></p>
+                <div id="approveNewsImageContainer" class="text-center mb-3"></div>
+                <div class="alert alert-success fw-bold text-center animate-alert">
+                    <i class="fas fa-check me-2"></i> Bạn có chắc chắn muốn duyệt bài viết này?
+                </div>
+                <input type="hidden" id="approveNewsId" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Hủy</button>
+                <button type="button" class="btn btn-success" onclick="approveNews()"><i class="fas fa-check me-1"></i> Duyệt</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- News Details Modal -->
+<div class="modal fade" id="newsDetailsModal" tabindex="-1" aria-labelledby="newsDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content animate-modal">
+            <div class="modal-header" id="detailsModalHeader">
+                <h5 class="modal-title" id="newsDetailsModalLabel">Chi tiết tin tức</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12 text-center">
+                            <h1 class="fw-bold" id="detailsTitle"></h1>
+                            <div id="detailsMeta"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-10 offset-md-1">
+                            <div class="text-center mb-3" id="detailsImageContainer"></div>
+
+                            <div class="content" id="detailsContent"></div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <span class="badge" id="detailsApprovalStatus"></span>
+                                <span class="text-muted" id="detailsCategory"></span>
+                            </div>
+
+                            <hr />
+
+                            <div class="text-center mt-4" id="detailsActions"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this hidden field to store current news ID -->
+<input type="hidden" id="currentNewsId" />
+
+<!-- Toast Notification -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="actionToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle me-2"></i> <span id="toastMessage">Thao tác thành công!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DateRangePicker JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script>
+        // Kiểm tra có cần hiển thị chi tiết không
+        var showDetailsId = '@(ViewData["ShowDetails"]?.ToString() ?? "null")';
+        if (showDetailsId !== "null") {
+            $(document).ready(function() {
+                setTimeout(function() {
+                    showDetailsModal(showDetailsId);
+                }, 500);
+            });
+        }
+
+        // Khởi tạo DateRangePicker
+        $(document).ready(function() {
+            // Cấu hình DateRangePicker
+            $('#dateRangePicker').daterangepicker({
+                opens: 'left',
+                autoUpdateInput: false,
+                locale: {
+                    format: 'DD/MM/YYYY',
+                    cancelLabel: 'Xóa',
+                    applyLabel: 'Áp dụng',
+                    fromLabel: 'Từ',
+                    toLabel: 'đến',
+                    customRangeLabel: 'Tùy chỉnh',
+                    daysOfWeek: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+                    monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                    firstDay: 1
+                }
+            });
+
+            // Xử lý khi chọn khoảng thời gian
+            $('#dateRangePicker').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+                $('#StartDate').val(picker.startDate.format('YYYY-MM-DD'));
+                $('#EndDate').val(picker.endDate.format('YYYY-MM-DD'));
+            });
+
+            $('#dateRangePicker').on('cancel.daterangepicker', function(ev, picker) {
+                $(this).val('');
+                $('#StartDate').val('');
+                $('#EndDate').val('');
+            });
+
+            // Thiết lập giá trị ban đầu nếu có
+            var startDate = '@ViewData["StartDateFilter"]';
+            var endDate = '@ViewData["EndDateFilter"]';
+
+            if (startDate && endDate) {
+                var start = moment(startDate);
+                var end = moment(endDate);
+                $('#dateRangePicker').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                $('#StartDate').val(startDate);
+                $('#EndDate').val(endDate);
+            }
+
+            // Xử lý các nút chọn nhanh khoảng thời gian
+            $('.date-preset').on('click', function() {
+                var range = $(this).data('range');
+                var start, end;
+
+                switch(range) {
+                    case 'today':
+                        start = moment().startOf('day');
+                        end = moment().endOf('day');
+                        break;
+                    case 'thisWeek':
+                        start = moment().startOf('week');
+                        end = moment().endOf('week');
+                        break;
+                    case 'thisMonth':
+                        start = moment().startOf('month');
+                        end = moment().endOf('month');
+                        break;
+                }
+
+                $('#dateRangePicker').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                $('#StartDate').val(start.format('YYYY-MM-DD'));
+                $('#EndDate').val(end.format('YYYY-MM-DD'));
+
+                // Chuyển đổi nút được active
+                $('.date-preset').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            // Nút reset bộ lọc
+            $('#resetFilters').click(function() {
+                $('#Title').val('');
+                $('#Author').val('');
+                $('#dateRangePicker').val('');
+                $('#StartDate').val('');
+                $('#EndDate').val('');
+                $('#allStatus').prop('checked', true);
+                $('#CategoryId').val('');
+                $('.date-preset').removeClass('active');
+
+                // Submit form để reset
+                $('#advancedFilterForm').submit();
+            });
+
+            // Hiển thị các bộ lọc đang áp dụng
+            updateActiveFilters();
+
+            // Animation khi mở bộ lọc
+            $('.filter-title').click(function() {
+                $(this).next('.filter-body').slideToggle(300);
+                $(this).toggleClass('active');
+            });
+        });
+
+        // Hàm hiển thị các bộ lọc đang áp dụng
+        function updateActiveFilters() {
+            var activeFilters = [];
+
+            var title = $('#Title').val();
+            var author = $('#Author').val();
+            var dateRange = $('#dateRangePicker').val();
+            var status = $('input[name="ApprovalStatus"]:checked').val();
+            var categoryId = $('#CategoryId option:selected').text();
+
+            if (title) activeFilters.push('<span class="filter-tag"><i class="fas fa-heading"></i> ' + title + '</span>');
+            if (author) activeFilters.push('<span class="filter-tag"><i class="fas fa-user-edit"></i> ' + author + '</span>');
+            if (dateRange) activeFilters.push('<span class="filter-tag"><i class="fas fa-calendar-alt"></i> ' + dateRange + '</span>');
+
+            if (status === 'approved') {
+                activeFilters.push('<span class="filter-tag status-approved"><i class="fas fa-check-circle"></i> Đã duyệt</span>');
+            } else if (status === 'pending') {
+                activeFilters.push('<span class="filter-tag status-pending"><i class="fas fa-clock"></i> Chờ duyệt</span>');
+            }
+
+            if (categoryId && categoryId !== '-- Tất cả danh mục --') {
+                activeFilters.push('<span class="filter-tag"><i class="fas fa-folder"></i> ' + categoryId + '</span>');
+            }
+
+            if (activeFilters.length > 0) {
+                $('#activeFilters').html('<div class="active-filters-label">Bộ lọc đang áp dụng:</div>' + activeFilters.join(''));
+            } else {
+                $('#activeFilters').html('<div class="no-filters">Không có bộ lọc nào được áp dụng</div>');
+            }
+        }
+    </script>
+    <script src="~/js/Admin/news-index.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,204 @@
+@model WebBaoDienTu.Models.News
+
+@{
+    bool isEdit = ViewData["IsEdit"] as bool? ?? false;
+    ViewData["Title"] = isEdit ? "Chỉnh sửa tin tức" : "Đăng tin mới";
+    Layout = "_Layout";
+
+    // Determine the controller name based on the user role
+    string controllerName = User.IsInRole("Admin") ? "AdminNews" : "UserNews";
+}
+
+<link rel="stylesheet" href="~/css/news-create.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3><i class="@(isEdit ? "fas fa-edit" : "fas fa-newspaper") me-2"></i> @ViewData["Title"]</h3>
+                </div>
+                <div class="card-body">
+                    <form id="newsForm" asp-controller="@controllerName" asp-action="@(isEdit ? "Edit" : "Create")" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        @if (isEdit)
+                        {
+                            <input type="hidden" asp-for="NewsId" />
+                            <input type="hidden" asp-for="CreatedAt" />
+                            <input type="hidden" asp-for="AuthorId" />
+                            <input type="hidden" asp-for="IsApproved" />
+                            <input type="hidden" asp-for="IsArchived" />
+                            <input type="hidden" asp-for="IsDeleted" />
+                        }
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-bold">Tiêu đề <span class="text-danger">*</span></label>
+                            <input asp-for="Title" class="form-control" required placeholder="Nhập tiêu đề bài viết..." />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Content" class="form-label fw-bold">Nội dung <span class="text-danger">*</span></label>
+                            <textarea asp-for="Content" id="content" class="form-control" rows="10" required
+                                      placeholder="Nhập nội dung chi tiết của tin tức...">@Html.Raw(Model?.Content)</textarea>
+                            <span asp-validation-for="Content" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CategoryId" class="form-label fw-bold">Danh mục <span class="text-danger">*</span></label>
+                            <select asp-for="CategoryId" asp-items="@(ViewData["CategoryId"] as SelectList)" class="form-select" required>
+                                <option value="">-- Chọn danh mục --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Hình ảnh</label>
+                            <input type="file" id="ImageFile" name="ImageFile" class="form-control" accept="image/*" />
+                            <small class="text-muted">Định dạng hỗ trợ: JPG, JPEG, PNG, GIF</small>
+
+                            <div class="mt-2">
+                                <label class="form-label">Hoặc nhập URL hình ảnh</label>
+                                <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
+                            </div>
+
+                            <div id="imagePreview" class="mt-3 @(string.IsNullOrEmpty(Model?.ImageUrl) ? "d-none" : "")">
+                                <p class="mb-2">Xem trước:</p>
+                                <img id="previewImage" src="@(Model?.ImageUrl ?? "#")" alt="Preview" class="img-fluid rounded" style="max-height: 200px" />
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-4">
+                                <i class="@(isEdit ? "fas fa-save" : "fas fa-paper-plane") me-2"></i> @(isEdit ? "Lưu thay đổi" : "Đăng tin")
+                            </button>
+                            <a asp-controller="@controllerName" asp-action="@(User.IsInRole("Admin") ? "Index" : "MyNews")" class="btn btn-outline-secondary btn-lg px-4">
+                                <i class="fas fa-arrow-left me-2"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast thông báo -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="successToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle me-2"></i>
+                <span id="toastMessage">Thao tác thành công!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('ImageFile').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                const imagePreview = document.getElementById('imagePreview');
+                const previewImage = document.getElementById('previewImage');
+
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    imagePreview.classList.remove('d-none');
+                }
+
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('ImageUrl').addEventListener('input', function (e) {
+            if (e.target.value) {
+                document.getElementById('ImageFile').value = '';
+                showImagePreview(e.target.value);
+            }
+        });
+
+        function showImagePreview(url) {
+            if (url) {
+                const imagePreview = document.getElementById('imagePreview');
+                const previewImage = document.getElementById('previewImage');
+                previewImage.src = url;
+                imagePreview.classList.remove('d-none');
+            }
+        }
+
+        window.onload = function () {
+            const imageUrl = document.getElementById('ImageUrl').value;
+            if (imageUrl) {
+                showImagePreview(imageUrl);
+            }
+        };
+
+        $('#newsForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            // Get the controller name based on user role
+            var controller = '@(User.IsInRole("Admin") ? "AdminNews" : "UserNews")';
+
+            // Add loading state to button
+            var submitButton = $(this).find('button[type="submit"]');
+            var originalButtonText = submitButton.html();
+            submitButton.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+            submitButton.prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr('action'),
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        setTimeout(function() {
+                            window.location.href = response.redirectUrl;
+                        }, 1500);
+                    } else {
+                        // Handle server validation errors
+                        showToast(response.message || 'Có lỗi xảy ra khi xử lý.', 'danger');
+                        submitButton.html(originalButtonText);
+                        submitButton.prop('disabled', false);
+                    }
+                },
+                error: function (xhr) {
+                    // Reset button state
+                    submitButton.html(originalButtonText);
+                    submitButton.prop('disabled', false);
+
+                    console.error('Error response:', xhr);
+
+                    // Check if we have validation errors
+                    if (xhr.status === 400 && xhr.responseJSON) {
+                        // Display validation errors
+                        showToast('Vui lòng sửa các lỗi và thử lại.', 'danger');
+                        // You can update the form to show specific errors if needed
+                    } else {
+                        showToast('Có lỗi xảy ra: ' + (xhr.responseJSON?.message || xhr.statusText || 'Không xác định'), 'danger');
+                    }
+                }
+            });
+        });
+
+        function showToast(message, type) {
+            var toast = document.getElementById('successToast');
+            toast.classList.remove('bg-success', 'bg-danger');
+            toast.classList.add(type === 'danger' ? 'bg-danger' : 'bg-success');
+            document.getElementById('toastMessage').textContent = message;
+            var bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+    </script>
+}

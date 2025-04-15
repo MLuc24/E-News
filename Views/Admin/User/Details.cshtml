@@ -1,0 +1,224 @@
+﻿@model WebBaoDienTu.Models.User
+
+@{
+    ViewData["Title"] = "Chi tiết người dùng";
+    var approvedNews = ViewBag.ApprovedNewsList as List<WebBaoDienTu.Models.News>;
+}
+
+<div class="container-fluid my-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h1 class="mb-3">
+                <i class="fas fa-user me-2"></i>Chi tiết người dùng
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-id-card me-2"></i>Thông tin người dùng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                        <h4>@Model.FullName</h4>
+                        <span class="badge bg-info">Người dùng</span>
+                    </div>
+
+                    <div class="user-info">
+                        <div class="mb-3">
+                            <label class="text-muted">ID:</label>
+                            <div>@Model.UserId</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted">Email:</label>
+                            <div>@Model.Email</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted">Ngày tạo tài khoản:</label>
+                            <div>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="button" class="btn btn-outline-primary edit-user-btn" data-user-id="@Model.UserId">
+                            <i class="fas fa-edit me-1"></i> Chỉnh sửa
+                        </button>
+                        <a asp-action="UserActivity" asp-route-id="@Model.UserId" class="btn btn-outline-info">
+                            <i class="fas fa-history me-1"></i> Xem hoạt động
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Thống kê</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body py-3">
+                                    <h3>@ViewBag.TotalNews</h3>
+                                    <div>Tổng số tin tức</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body py-3">
+                                    <h3>@ViewBag.ApprovedNews</h3>
+                                    <div>Tin đã duyệt</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-warning text-dark">
+                                <div class="card-body py-3">
+                                    <h3>@ViewBag.PendingNews</h3>
+                                    <div>Tin chờ duyệt</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-newspaper me-2"></i>Tin đã duyệt gần đây</h5>
+                </div>
+                <div class="card-body">
+                    @if (approvedNews != null && approvedNews.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tiêu đề</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Xem</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var news in approvedNews.OrderByDescending(n => n.CreatedAt).Take(5))
+                                    {
+                                        <tr>
+                                            <td>@news.NewsId</td>
+                                            <td>@news.Title</td>
+                                            <td>@news.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>
+                                                <a href="/News/Read/@news.NewsId" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <a asp-action="UserActivity" asp-route-id="@Model.UserId" class="btn btn-outline-primary">
+                                Xem tất cả tin tức đã duyệt
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Người dùng này chưa có bài viết được duyệt nào.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Trở về danh sách
+        </a>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editUserModalLabel"><i class="fas fa-user-edit me-2"></i>Cập nhật người dùng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="edit-userId" name="UserId" />
+
+                    <div class="mb-3">
+                        <label for="edit-fullName" class="form-label">Họ và tên</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="edit-fullName" name="FullName" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" class="form-control" id="edit-email" name="Email" required>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3 bg-light">
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="changePasswordCheck" name="ChangePassword">
+                                <label class="form-check-label" for="changePasswordCheck">
+                                    <i class="fas fa-key me-1"></i> Đổi mật khẩu cho người dùng
+                                </label>
+                            </div>
+
+                            <div id="passwordSection" class="mb-3" style="display: none;">
+                                <label for="edit-newPassword" class="form-label">Mật khẩu mới</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control" id="edit-newPassword" name="NewPassword">
+                                </div>
+                                <div class="form-text">Mật khẩu phải có ít nhất 6 ký tự.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Lưu thay đổi
+                            </button>
+                            <button type="button" class="btn btn-warning" onclick="resetPassword(document.getElementById('edit-userId').value)">
+                                <i class="fas fa-key me-1"></i> Đặt lại mật khẩu
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container" class="position-fixed bottom-0 end-0 p-3"></div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script src="~/js/Admin/user-management.js"></script>
+}

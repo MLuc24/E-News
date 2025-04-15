@@ -1,0 +1,359 @@
+﻿/* notification.css - Complete rewrite with enhanced animations */
+
+/* Notification Dropdown Base */
+.notification-dropdown {
+    max-height: 400px;
+    overflow-y: hidden;
+    width: 452px !important;
+    opacity: 0;
+    display: block;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    visibility: hidden;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 3px 10px rgba(0, 123, 255, 0.1);
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) translateY(15px) scale(0.95) !important;
+    transform-origin: top center;
+    background: linear-gradient(135deg, #e6f0ff, #ffffff);
+    position: absolute !important;
+    margin-top: 0.5rem;
+    border: none;
+}
+
+    /* Enhanced hover behavior */
+    .notification-wrapper:hover .notification-dropdown,
+    .notification-dropdown:hover {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0) scale(1) !important;
+    }
+
+    /* Notification Items with subtle animation */
+    .notification-dropdown .dropdown-item {
+        font-size: 1rem;
+        padding: 0.8rem 1.5rem;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        border-left: 0px solid transparent;
+    }
+
+        .notification-dropdown .dropdown-item:hover {
+            background: linear-gradient(135deg, #e6f0ff, #b3d4ff);
+            color: #333;
+            transform: translateX(5px);
+            border-left: 4px solid #007bff;
+        }
+
+    .notification-dropdown .dropdown-header {
+        font-size: 1.2rem;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border-radius: 15px 15px 0 0;
+    }
+
+/* Notification Container with Animation */
+#notification-container {
+    max-height: 320px; /* Adjust height to fit content */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    padding-right: 10px; /* Add padding to avoid overlap with scrollbar */
+}
+.notification-dropdown .dropdown-item {
+    animation: dropIn 0.5s ease backwards;
+}
+
+@keyframes dropIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Add delays to create a cascade effect */
+.notification-dropdown .dropdown-item:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.notification-dropdown .dropdown-item:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.notification-dropdown .dropdown-item:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.notification-dropdown .dropdown-item:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+.notification-dropdown .dropdown-item:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+.notification-item {
+    border-bottom: 1px solid #eee;
+    padding: 15px;
+    transition: all 0.3s ease;
+    background-color: #ffffff;
+}
+
+    .notification-item:hover {
+        background-color: #f0f4ff;
+    }
+
+    /* Unread notification gradients */
+    .notification-item.unread:nth-child(1) {
+        background-color: rgba(13, 110, 253, 0.2);
+    }
+
+    .notification-item.unread:nth-child(2) {
+        background-color: rgba(13, 110, 253, 0.17);
+    }
+
+    .notification-item.unread:nth-child(3) {
+        background-color: rgba(13, 110, 253, 0.14);
+    }
+
+    .notification-item.unread:nth-child(4) {
+        background-color: rgba(13, 110, 253, 0.11);
+    }
+
+    .notification-item.unread:nth-child(5) {
+        background-color: rgba(13, 110, 253, 0.08);
+    }
+
+    .notification-item.unread:nth-child(n+6) {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+
+/* Add continuous bell animation for unread notifications */
+.bell-continuous-animate {
+    animation: bellRingContinuous 2s infinite ease-in-out;
+    transform-origin: top center;
+}
+
+@keyframes bellRingContinuous {
+    0% {
+        transform: rotate(0);
+    }
+
+    5% {
+        transform: rotate(15deg);
+    }
+
+    10% {
+        transform: rotate(-15deg);
+    }
+
+    15% {
+        transform: rotate(13deg);
+    }
+
+    20% {
+        transform: rotate(-13deg);
+    }
+
+    25% {
+        transform: rotate(11deg);
+    }
+
+    30% {
+        transform: rotate(-11deg);
+    }
+
+    35% {
+        transform: rotate(9deg);
+    }
+
+    40% {
+        transform: rotate(-9deg);
+    }
+
+    45% {
+        transform: rotate(7deg);
+    }
+
+    50% {
+        transform: rotate(-7deg);
+    }
+
+    55% {
+        transform: rotate(5deg);
+    }
+
+    60% {
+        transform: rotate(-5deg);
+    }
+
+    65% {
+        transform: rotate(2deg);
+    }
+
+    70% {
+        transform: rotate(-2deg);
+    }
+
+    75%, 100% {
+        transform: rotate(0);
+    }
+}
+
+/* Enhanced single ring animation - fixed to ensure it works */
+.bell-animate {
+    animation: bellRingEnhanced 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) both !important;
+    transform-origin: top center !important;
+}
+
+@keyframes bellRingEnhanced {
+    0% {
+        transform: rotate(0);
+    }
+
+    10% {
+        transform: rotate(30deg);
+    }
+
+    20% {
+        transform: rotate(-28deg);
+    }
+
+    30% {
+        transform: rotate(26deg);
+    }
+
+    40% {
+        transform: rotate(-24deg);
+    }
+
+    50% {
+        transform: rotate(22deg);
+    }
+
+    60% {
+        transform: rotate(-20deg);
+    }
+
+    70% {
+        transform: rotate(18deg);
+    }
+
+    80% {
+        transform: rotate(-16deg);
+    }
+
+    90% {
+        transform: rotate(14deg);
+    }
+
+    95% {
+        transform: rotate(-10deg);
+    }
+
+    100% {
+        transform: rotate(0);
+    }
+}
+
+/* Ensure the bell icon always has a transformation so animations work */
+.navbar-nav .nav-link i.fas.fa-bell {
+    font-size: 2rem !important;
+    color: #555;
+    transition: color 0.3s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: inline-block;
+    transform: rotate(0); /* Ensure the bell always has a transform style */
+}
+
+
+.navbar-nav .nav-link:hover i.fas.fa-bell {
+    color: #007bff;
+    transform: scale(1.15);
+}
+
+/* Notification Count Badge */
+/* Fix notification badge size */
+.notification-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.8rem;
+    width: 20px !important; /* Fixed width */
+    height: 20px !important; /* Fixed height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #dc3545;
+    color: white;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding: 0 !important;
+    margin: 0;
+    line-height: 1;
+    transform: none !important; /* Prevent any transforms */
+    transition: opacity 0.3s ease !important; /* Only animate opacity */
+}
+
+
+/* Mark All As Read Button with Enhanced Style */
+#markAllAsRead {
+    color: #ffffff;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+    #markAllAsRead:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+/* Notification Wrapper */
+.nav-item.dropdown.notification-wrapper {
+    position: relative;
+    padding: 0;
+    margin-right: 25px;
+}
+
+/* Empty Notifications Message */
+#no-notifications {
+    text-align: center;
+    padding: 30px;
+    color: #6c757d;
+    font-style: italic;
+    font-size: 1.1rem;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 576px) {
+    .notification-dropdown {
+        width: 300px !important;
+        left: auto !important;
+        right: 0 !important;
+        transform: translateX(0) translateY(15px) scale(0.95) !important;
+    }
+
+        .notification-wrapper:hover .notification-dropdown,
+        .notification-dropdown:hover {
+            transform: translateX(0) translateY(0) scale(1) !important;
+        }
+
+        .notification-dropdown .dropdown-item {
+            padding: 0.7rem 1.2rem;
+            font-size: 0.9rem;
+        }
+}

@@ -1,0 +1,589 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WebBaoDienTu</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/layout/title.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout/auth.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout/notification.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/global-button-effects.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout/footer.css" asp-append-version="true" />
+    @Html.AntiForgeryToken()
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container">
+                <!-- Logo -->
+                <a class="navbar-brand me-2" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo.png" alt="Logo" />
+                </a>
+
+                <!-- Hamburger menu for mobile -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarContent" aria-controls="navbarContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- User controls for mobile/tablet - always visible -->
+                <div class="d-flex d-lg-none ms-auto me-2 order-lg-last align-items-center">
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <!-- Notification bell icon -->
+                        <div class="nav-item dropdown position-relative notification-wrapper me-2">
+                            <a class="nav-link position-relative" href="#" id="mobileNotificationDropdown"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell"></i>
+                                <span class="badge bg-danger notification-count" id="mobile-notification-badge" style="display: none;">0</span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end notification-dropdown"
+                                 aria-labelledby="mobileNotificationDropdown">
+                                <div class="dropdown-header d-flex justify-content-between align-items-center">
+                                    <span>Thông báo</span>
+                                    <button class="btn btn-sm btn-link" id="mobileMarkAllAsRead">Đánh dấu đã đọc</button>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div id="mobile-notification-container">
+                                    <div class="dropdown-item text-center text-muted" id="mobile-no-notifications">Không có thông báo</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User account icon -->
+                        <div class="nav-item dropdown me-2">
+                            <a class="nav-link" href="#" id="mobileUserDropdown"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="mobileUserDropdown">
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <li><a class="dropdown-item" asp-controller="AdminNews" asp-action="Index"><i class="fas fa-list"></i> Danh sách tin tức</a></li>
+                                    <li><a class="dropdown-item" asp-controller="AdminUser" asp-action="Index"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
+                                }
+
+                                @if (User.IsInRole("User"))
+                                {
+                                    <li><a class="dropdown-item" asp-controller="UserNews" asp-action="Create"><i class="fas fa-plus"></i> Đăng tin mới</a></li>
+                                    <li><a class="dropdown-item" asp-controller="UserNews" asp-action="MyNews"><i class="fas fa-history"></i> Lịch sử tin tức</a></li>
+                                }
+                                <li><a class="dropdown-item" asp-controller="Sharing" asp-action="MyShares"><i class="fas fa-share-alt"></i> Tin đã chia sẻ</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key"></i> Đổi mật khẩu</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Login/Register icons for mobile -->
+                        <div class="d-flex">
+                            <a class="nav-link me-2" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <i class="fas fa-right-to-bracket"></i>
+                            </a>
+                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">
+                                <i class="fas fa-user-plus"></i>
+                            </a>
+                        </div>
+                    }
+
+                    <!-- Search toggle button for mobile/tablet -->
+                    <button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#mobileSearchForm" aria-expanded="false" aria-controls="mobileSearchForm">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+
+                <!-- Collapsible content -->
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <!-- Categories menu -->
+                    @if (ViewBag.HideNavElements != true)
+                    {
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            @if (ViewBag.Categories is IEnumerable<Category> categories)
+                            {
+                                foreach (var category in categories)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Category" asp-route-id="@category.CategoryId">
+                                            @category.CategoryName
+                                        </a>
+                                    </li>
+                                }
+                            }
+                        </ul>
+
+                        <!-- Search form for desktop -->
+                        <div class="d-none d-lg-block mx-lg-2">
+                            <form class="d-flex" asp-controller="Home" asp-action="Search" method="get">
+                                <div class="input-group">
+                                    <input class="form-control" type="search" name="query" placeholder="Nhập vào đây để tìm kiếm..." aria-label="Search">
+                                    <button class="btn btn-search" type="submit">
+                                        <i class="fas fa-magnifying-glass"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    }
+
+                    <!-- Desktop user controls -->
+                    <div class="d-none d-lg-flex align-items-center ms-auto">
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <!-- Chuông thông báo -->
+                            <div class="nav-item dropdown me-3 position-relative notification-wrapper">
+                                <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-bell"></i>
+                                    <span class="badge bg-danger notification-count" id="notification-badge" style="display: none;">0</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown">
+                                    <div class="dropdown-header d-flex justify-content-between align-items-center">
+                                        <span>Thông báo</span>
+                                        <button class="btn btn-sm btn-link" id="markAllAsRead">Đánh dấu đã đọc</button>
+                                    </div>
+                                    <div class="dropdown-divider"></div>
+                                    <div id="notification-container">
+                                        <div class="dropdown-item text-center text-muted" id="no-notifications">Không có thông báo</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User account dropdown -->
+                            <div class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="username d-none d-sm-inline">@(User.Claims.FirstOrDefault(c => c.Type == "DisplayName")?.Value ?? User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? User.Identity.Name)</span>
+                                    <i class="fas fa-user-circle account-icon"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <li><a class="dropdown-item" asp-controller="AdminNews" asp-action="Index"><i class="fas fa-list"></i> Danh sách tin tức</a></li>
+                                        <li><a class="dropdown-item" asp-controller="AdminUser" asp-action="Index"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Subscription" asp-action="ManageSubscriptions"><i class="fas fa-envelope-open-text"></i> Quản lý đăng ký</a></li>
+                                    }
+
+                                    @if (User.IsInRole("User"))
+                                    {
+                                        <li><a class="dropdown-item" asp-controller="UserNews" asp-action="Create"><i class="fas fa-plus"></i> Đăng tin mới</a></li>
+                                        <li><a class="dropdown-item" asp-controller="UserNews" asp-action="MyNews"><i class="fas fa-history"></i> Lịch sử tin tức</a></li>
+                                    }
+                                    <li><a class="dropdown-item" asp-controller="Sharing" asp-action="MyShares"><i class="fas fa-share-alt"></i> Tin đã chia sẻ</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key"></i> Đổi mật khẩu</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0);" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Login/Register links -->
+                            <ul class="navbar-nav auth-links flex-row">
+                                <li class="nav-item mx-2">
+                                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">
+                                        <i class="fas fa-user-plus me-1"></i> Đăng ký
+                                    </a>
+                                </li>
+                                <li class="nav-item mx-2">
+                                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                        <i class="fas fa-right-to-bracket me-1"></i> Đăng nhập
+                                    </a>
+                                </li>
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile search form (collapsible) -->
+        @if (ViewBag.HideNavElements != true)
+        {
+            <div class="collapse" id="mobileSearchForm">
+                <div class="container py-2">
+                    <form class="d-flex" asp-controller="Home" asp-action="Search" method="get">
+                        <div class="input-group">
+                            <input class="form-control" type="search" name="query" placeholder="Nhập vào đây để tìm kiếm..." aria-label="Search">
+                            <button class="btn btn-search" type="submit">
+                                <i class="fas fa-magnifying-glass"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <!-- Login Modal -->
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content login-modal">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="loginModalLabel">
+                            <i class="fas fa-door-open me-2"></i> Đăng nhập
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted mb-3">Vui lòng nhập thông tin để truy cập tài khoản của bạn.</p>
+                        <form id="loginForm">
+                            <div class="alert alert-danger" id="loginErrorMessage" style="display: none;"></div>
+                            <div class="mb-3 form-group">
+                                <label for="loginEmail" class="form-label"><i class="fas fa-envelope me-1"></i> Email</label>
+                                <input type="email" class="form-control" id="loginEmail" placeholder="Nhập email của bạn" required>
+                            </div>
+                            <div class="mb-3 form-group">
+                                <label for="loginPassword" class="form-label"><i class="fas fa-lock me-1"></i> Mật khẩu</label>
+                                <input type="password" class="form-control" id="loginPassword" placeholder="Nhập mật khẩu" required>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">Ghi nhớ đăng nhập</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 btn-login">
+                                <i class="fas fa-arrow-right me-2"></i> Đăng nhập
+                            </button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <small class="text-muted">Chưa có tài khoản? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">Đăng ký ngay</a></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content register-modal">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="registerModalLabel">
+                            <i class="fas fa-user-check me-2"></i> Đăng ký
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted mb-3">Tạo tài khoản để tham gia ngay hôm nay!</p>
+                        <form id="registerForm">
+                            <div class="alert alert-danger" id="registerErrorMessage" style="display: none;"></div>
+                            <div class="mb-3 form-group">
+                                <label for="registerFullName" class="form-label"><i class="fas fa-user me-1"></i> Họ và tên</label>
+                                <input type="text" class="form-control" id="registerFullName" placeholder="Nhập họ và tên" required>
+                            </div>
+                            <div class="mb-3 form-group">
+                                <label for="registerEmail" class="form-label"><i class="fas fa-envelope me-1"></i> Email</label>
+                                <input type="email" class="form-control" id="registerEmail" placeholder="Nhập email của bạn" required>
+                            </div>
+                            <div class="mb-3 form-group">
+                                <label for="registerPassword" class="form-label"><i class="fas fa-lock me-1"></i> Mật khẩu</label>
+                                <input type="password" class="form-control" id="registerPassword" placeholder="Tạo mật khẩu" required>
+                            </div>
+                            <div class="mb-3 form-group">
+                                <label for="confirmPassword" class="form-label"><i class="fas fa-lock me-1"></i> Xác nhận mật khẩu</label>
+                                <input type="password" class="form-control" id="confirmPassword" placeholder="Nhập lại mật khẩu" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 btn-register">
+                                <i class="fas fa-user-check me-2"></i> Đăng ký
+                            </button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <small class="text-muted">Đã có tài khoản? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Đăng nhập ngay</a></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Verification Modal -->
+        <div class="modal fade" id="verificationModal" tabindex="-1" aria-labelledby="verificationModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content verification-modal">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="verificationModalLabel">
+                            <i class="fas fa-envelope-open-text me-2"></i> Xác minh Email
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center mb-4">
+                            <div class="animate__animated animate__zoomIn">
+                                <i class="fas fa-envelope-open-text fa-3x text-primary mb-3"></i>
+                            </div>
+                            <h4>Xác minh email của bạn</h4>
+                            <p class="text-muted">Chúng tôi đã gửi một mã xác nhận đến email của bạn. Vui lòng kiểm tra hộp thư đến và nhập mã xác nhận dưới đây.</p>
+                        </div>
+
+                        <form id="verificationForm">
+                            <div class="alert alert-danger" id="verificationErrorMessage" style="display: none;"></div>
+                            <input type="hidden" id="verificationEmail" name="verificationEmail">
+
+                            <div class="mb-4 form-group">
+                                <label for="verificationCode" class="form-label">Mã xác nhận</label>
+                                <input type="text" class="form-control form-control-lg text-center" id="verificationCode"
+                                       placeholder="000000" maxlength="6" required
+                                       style="letter-spacing: 5px; font-size: 24px; font-weight: bold;">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                <i class="fas fa-check-circle me-2"></i> Xác nhận
+                            </button>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div id="resendCounter" style="display: none;">
+                                    <small class="text-muted">Gửi lại sau <span id="countdownTimer">60</span>s</small>
+                                </div>
+
+                                <button type="button" id="resendVerificationBtn" class="btn btn-link text-decoration-none">
+                                    <small><i class="fas fa-redo me-1"></i> Gửi lại mã</small>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <small class="text-muted">Không nhận được email? Hãy kiểm tra thư mục spam/rác của bạn.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content success-modal">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="successModalLabel">
+                            <i class="fas fa-check-circle me-2"></i> Thành công
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <i class="fas fa-check-circle fa-4x text-success mb-3 animate__animated animate__bounceIn"></i>
+                        <h4 id="successMessage" class="fw-bold text-success mb-3" style="font-family: 'Poppins', sans-serif;"></h4>
+                        <p class="text-muted">Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+                        <button type="button" class="btn btn-success btn-lg" data-bs-dismiss="modal">
+                            <i class="fas fa-thumbs-up me-2"></i> Tuyệt vời!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Modal -->
+        <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content change-password-modal">
+                    <div class="modal-header">
+                        <h5 class="modal-title modal-title-animated" id="changePasswordModalLabel">
+                            <i class="fas fa-key me-2"></i> Đổi mật khẩu
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted mb-3">Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu với người khác.</p>
+                        <form id="changePasswordForm">
+                            <div class="alert alert-danger" id="passwordErrorMessage" style="display: none;"></div>
+                            <div class="mb-3 form-group">
+                                <label for="currentPassword" class="form-label"><i class="fas fa-lock me-1"></i> Mật khẩu hiện tại</label>
+                                <input type="password" class="form-control" id="currentPassword" placeholder="Nhập mật khẩu hiện tại" required>
+                            </div>
+                            <div class="mb-3 form-group">
+                                <label for="newPassword" class="form-label"><i class="fas fa-key me-1"></i> Mật khẩu mới</label>
+                                <input type="password" class="form-control" id="newPassword" placeholder="Nhập mật khẩu mới" required>
+                            </div>
+                            <div class="mb-3 form-group">
+                                <label for="confirmNewPassword" class="form-label"><i class="fas fa-check me-1"></i> Xác nhận mật khẩu</label>
+                                <input type="password" class="form-control" id="confirmNewPassword" placeholder="Nhập lại mật khẩu mới" required>
+                            </div>
+                            <div class="password-requirements mb-3">
+                                <p class="text-muted"><small>Mật khẩu phải từ 6-8 ký tự, chứa ít nhất một chữ cái in hoa và một số.</small></p>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-save me-2"></i> Cập nhật mật khẩu
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Modal - Đã giải quyết vấn đề trùng lặp -->
+        <div class="modal fade" id="sessionExpiredModal" tabindex="-1" aria-labelledby="sessionExpiredModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="sessionExpiredModalLabel">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <span class="session-modal-title">Phiên đăng nhập hết hạn</span>
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <div class="session-icon">
+                            <i class="fas fa-clock text-danger fa-3x mb-3"></i>
+                        </div>
+                        <h5 class="session-title fw-bold mb-3">Phiên đăng nhập đã hết hạn</h5>
+                        <p class="session-message mb-0">
+                            Vui lòng đăng nhập lại để tiếp tục sử dụng hệ thống.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> Đóng
+                        </button>
+                        <button type="button" class="btn btn-primary" id="sessionLoginBtn">
+                            <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug Modal -->
+        <div class="modal fade" id="debugModal" tabindex="-1" aria-labelledby="debugModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="debugModalLabel">
+                            <i class="fas fa-bug me-2"></i> Debug Information
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="debugContent" class="p-3 bg-light">
+                            <div>Đang tải thông tin debug...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast container cho thông báo -->
+        <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;"></div>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            <div class="container">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer-area">
+        <div class="footer-wave"></div>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
+                    <div class="footer-info">
+                        <h3>Web Báo Điện Tử</h3>
+                        <p>Cập nhật tin tức mới nhất, nhanh nhất và chính xác nhất về các sự kiện trong nước và quốc tế.</p>
+                        <div class="social-icons">
+                            <a href="https://www.facebook.com/pham.manhluc.5?mibextid=ZbWKwL" target="_blank" class="social-icon facebook" aria-label="Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="https://www.instagram.com/phamluc0423/" target="_blank" class="social-icon instagram" aria-label="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="https://zalo.me" target="_blank" class="social-icon zalo" aria-label="Zalo">
+                                <i class="fab fa-telegram-plane"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
+                    <div class="footer-links">
+                        <h4>Đội ngũ phát triển</h4>
+                        <ul>
+                            <li><a asp-area="" asp-controller="Home" asp-action="Index"><i class="fas fa-angle-right"></i> Phạm Mạnh Lực</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="Privacy"><i class="fas fa-angle-right"></i> Lê Văn Đạt</a></li>
+                            <li><a asp-area="" asp-controller="News" asp-action="Create"><i class="fas fa-angle-right"></i> Lê Quốc Duy</a></li>
+                            <li><a asp-area="" asp-controller="News" asp-action="MyNews"><i class="fas fa-angle-right"></i> Trương Ngọc Dương</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-12">
+                    <div class="footer-newsletter">
+                        <h4>Đăng ký nhận tin</h4>
+                        <p>Đăng ký để nhận thông tin mới nhất từ chúng tôi</p>
+
+                        <div class="newsletter-container">
+                            <!-- Subscription form -->
+                            <form id="footerSubscriptionForm" class="newsletter-form" asp-controller="Subscription" asp-action="Subscribe">
+                                @Html.AntiForgeryToken()
+                                <div class="input-group">
+                                    <input type="email" name="email" id="footerEmail" placeholder="Email của bạn" required>
+                                    <button type="submit" class="btn-subscribe"><i class="fas fa-paper-plane"></i></button>
+                                </div>
+                            </form>
+
+                            <!-- Unsubscribe form (initially hidden) -->
+                            <form id="footerUnsubscribeForm" class="newsletter-form" style="display: none;">
+                                @Html.AntiForgeryToken()
+                                <div class="input-group">
+                                    <input type="email" name="email" id="footerUnsubEmail" placeholder="Email của bạn" required>
+                                    <button type="submit" class="btn-unsubscribe"><i class="fas fa-times-circle"></i></button>
+                                </div>
+                            </form>
+
+                            <!-- Result message -->
+                            <div id="subscriptionResult" class="mt-2" style="display: none;"></div>
+
+                            <!-- Toggle between subscribe and unsubscribe -->
+                            <div class="mt-2">
+                                <a href="#" id="toggleSubscriptionMode" class="text-light">
+                                    <small id="subscriptionToggleText"><i class="fas fa-times-circle me-1"></i>Hủy đăng ký</small>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <p class="mb-2">Tải ứng dụng:</p>
+                            <div class="app-links">
+                                <a href="#" class="me-3"><i class="fab fa-google-play me-2"></i>Google Play</a>
+                                <a href="#"><i class="fab fa-app-store-ios me-2"></i>App Store</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/Layout/modules/ui.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/Layout/modules/auth.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/Layout/modules/notification.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/Layout/modules/session.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/Layout/layout.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/hover-dropdown.js" asp-append-version="true"></script>
+    <script src="~/js/global-button-effects.js" asp-append-version="true"></script>
+    <script src="~/js/Subscription/subscribe.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

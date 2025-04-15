@@ -1,0 +1,114 @@
+﻿@model IEnumerable<WebBaoDienTu.Models.News>
+@using System.Linq
+
+@{
+    ViewData["Title"] = ViewData["Title"] ?? "Tin hot nhất hôm nay";
+    Layout = "_Layout";
+    bool isHomePage = (ViewData["IsHomePage"]?.ToString() ?? "false") == "true";
+}
+
+<!-- Google Font và CSS -->
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+
+<div class="container mt-4">
+    <!-- Tiêu đề trang -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="hot-title">
+                @(isHomePage ? "Tin hot nhất hôm nay" : ViewData["Title"])
+            </h1>
+        </div>
+    </div>
+
+    <!-- Grid tin tức responsive -->
+    <div class="news-grid">
+        @{
+            var newsList = Model.ToList();
+
+            // Kiểm tra nếu có tin tức
+            if (newsList.Any())
+            {
+                var featuredNews = newsList.Take(2).ToList();
+                var regularNews = newsList.Skip(2).ToList();
+
+                // Tin tức nổi bật - 2 tin đầu tiên
+                foreach (var news in featuredNews)
+                {
+                    <div class="news-item featured">
+                        <div class="news-card">
+                            <a href="@Url.Action("Read", "News", new { id = news.NewsId })" class="news-card-link">
+                                <img src="@(string.IsNullOrEmpty(news.ImageUrl) ? "/images/default-news.jpg" : news.ImageUrl)"
+                                     class="news-image featured" alt="@news.Title">
+                                <div class="news-body">
+                                    <h3 class="news-title">@news.Title</h3>
+                                    <p class="news-content">
+                                        @(string.IsNullOrEmpty(news.Content)
+                                        ? "Nội dung đang cập nhật..."
+                                        : (news.Content.Length > 150 ? news.Content.Substring(0, 150) + "..." : news.Content))
+                                    </p>
+                                    <span class="read-more">Xem thêm</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                }
+
+                // Tin tức thường - 3 tin trên mỗi hàng (responsive)
+                foreach (var news in regularNews)
+                {
+                    <div class="news-item">
+                        <div class="news-card">
+                            <a href="@Url.Action("Read", "News", new { id = news.NewsId })" class="news-card-link">
+                                <img src="@(string.IsNullOrEmpty(news.ImageUrl) ? "/images/default-news.jpg" : news.ImageUrl)"
+                                     class="news-image" alt="@news.Title">
+                                <div class="news-body">
+                                    <h3 class="news-title">@news.Title</h3>
+                                    <p class="news-content">
+                                        @(string.IsNullOrEmpty(news.Content)
+                                        ? "Nội dung đang cập nhật..."
+                                        : (news.Content.Length > 100 ? news.Content.Substring(0, 100) + "..." : news.Content))
+                                    </p>
+                                    <span class="read-more">Xem thêm</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- Hiển thị thông báo khi không có tin tức -->
+                <div class="col-12 text-center mt-5 mb-5">
+                    <div class="alert alert-info">
+                        <i class="fas fa-newspaper me-2"></i> Chưa có tin tức nào được đăng. Vui lòng quay lại sau.
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Phân trang (nếu cần) -->
+    @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <nav aria-label="Phân trang">
+                    <ul class="pagination justify-content-center">
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/NewsRead/news-home.js" asp-append-version="true"></script>
+}
+

@@ -1,0 +1,366 @@
+﻿/* ===== TỔNG QUAN TRANG CHỦ =====
+ * home.css - Tệp CSS cho trang chủ tin tức, hỗ trợ responsive
+ * Desktop: 3 tin/hàng, Tablet: 2 tin/hàng, Mobile: 1 tin/hàng
+ */
+
+/* === THIẾT LẬP CONTAINER VÀ LAYOUT CHUNG === */
+/* Container chính - đảm bảo khoảng cách đều hai bên */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: 30px !important;
+    padding-right: 30px !important;
+}
+
+/* === HIỆU ỨNG CHO TIÊU ĐỀ TRANG === */
+/* Hiệu ứng cho tiêu đề "Bảng tin hot nhất hôm nay" */
+.hot-title {
+    font-family: 'Pacifico', cursive;
+    color: #d63384;
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+    /* Hiệu ứng gạch chân cho tiêu đề */
+    .hot-title::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 150px;
+        height: 3px;
+        background: linear-gradient(90deg, #d63384, #ff6f91);
+        border-radius: 2px;
+        animation: slideIn 1s ease-out;
+        transition: width 0.3s ease;
+    }
+
+    /* Hiệu ứng hover cho tiêu đề */
+    .hot-title:hover {
+        color: #ff6f91;
+    }
+
+        .hot-title:hover::after {
+            width: 200px;
+        }
+
+/* Hiệu ứng xuất hiện gạch chân */
+@keyframes slideIn {
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 150px;
+    }
+}
+
+/* === THIẾT LẬP GRID TIN TỨC CHÍNH === */
+/* Grid container cho danh sách tin */
+.news-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -15px;
+    justify-content: center;
+}
+
+/* Item tin tức - thiết lập cơ bản */
+.news-item {
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+/* Desktop - 3 tin trên mỗi hàng */
+.news-item {
+    width: 33.333%;
+}
+
+    /* Tin tức nổi bật (2 tin đầu tiên) - lớn hơn */
+    .news-item.featured {
+        width: 50%;
+    }
+
+/* === THIẾT LẬP THẺ TIN TỨC === */
+/* Thẻ tin tức - thiết kế chung */
+.news-card {
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    border: none;
+}
+
+    /* Hiệu ứng hover cho thẻ tin */
+    .news-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+/* Link bao trùm toàn bộ thẻ */
+.news-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    height: 100%;
+}
+
+/* === HÌNH ẢNH TIN TỨC === */
+/* Hình ảnh tin tức - thiết lập cơ bản */
+.news-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: all 0.4s ease;
+}
+
+    /* Hình ảnh lớn cho tin nổi bật */
+    .news-image.featured {
+        height: 300px;
+    }
+
+/* Hiệu ứng hover cho hình ảnh */
+.news-card:hover .news-image {
+    transform: scale(1.05);
+    filter: brightness(1.05);
+}
+
+/* === NỘI DUNG TIN TỨC === */
+/* Phần thân tin tức */
+.news-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    background-color: #fff;
+}
+
+/* Tiêu đề tin tức */
+.news-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: #333;
+    transition: color 0.3s ease;
+    line-height: 1.4;
+}
+
+/* Hiệu ứng hover cho tiêu đề */
+.news-card:hover .news-title {
+    color: #d63384;
+}
+
+/* Nội dung tóm tắt tin */
+.news-content {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 1rem;
+    flex-grow: 1;
+    line-height: 1.5;
+}
+
+/* Nút "Xem thêm" */
+.read-more {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin-top: auto;
+    align-self: flex-start;
+}
+
+    /* Hiệu ứng hover cho nút xem thêm */
+    .read-more:hover {
+        color: #0056b3;
+        transform: translateX(5px);
+    }
+
+    /* Hiển thị mũi tên khi hover */
+    .read-more::after {
+        content: ' →';
+        opacity: 0;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        display: inline-block;
+        transform: translateX(-5px);
+    }
+
+    .read-more:hover::after {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+/* === THÔNG TIN PHỤ VỀ TIN TỨC === */
+/* Khu vực chứa thông tin phụ (tác giả, ngày, danh mục) */
+.news-meta {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.75rem;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 0.75rem;
+}
+
+/* === THIẾT LẬP RESPONSIVE === */
+/* Tablet - 2 tin trên mỗi hàng */
+@media (max-width: 991.98px) {
+    /* Giảm padding cho container */
+    .container {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    /* 2 tin trên mỗi hàng - đảm bảo luôn 50% */
+    .news-item {
+        width: 50% !important;
+    }
+
+        /* Giữ nguyên 2 tin nổi bật */
+        .news-item.featured {
+            width: 50% !important;
+        }
+
+    /* Giảm kích thước tiêu đề */
+    .hot-title {
+        font-size: 1.75rem;
+    }
+
+    /* Giảm kích thước ảnh */
+    .news-image {
+        height: 180px;
+    }
+
+        .news-image.featured {
+            height: 240px;
+        }
+}
+
+/* Mobile - 1 tin trên mỗi hàng */
+@media (max-width: 768px) {
+    /* Giảm padding cho container */
+    .container {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+
+    /* 1 tin trên mỗi hàng - đảm bảo luôn 100% */
+    .news-item,
+    .news-item.featured {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Giảm kích thước tiêu đề */
+    .hot-title {
+        font-size: 1.5rem;
+    }
+
+        .hot-title::after {
+            width: 120px;
+        }
+
+    /* Điều chỉnh kích thước ảnh */
+    .news-image,
+    .news-image.featured {
+        height: 200px;
+    }
+
+    /* Giảm kích thước tiêu đề tin */
+    .news-title {
+        font-size: 1.1rem;
+    }
+
+    /* Đảm bảo không có margin âm trên mobile */
+    .news-grid {
+        margin: 0;
+    }
+
+    /* Tăng padding cho tin trên mobile */
+    .news-item {
+        padding: 10px 0;
+    }
+}
+
+
+/* === HIỆU ỨNG BỔ SUNG VÀ ANIMATION === */
+/* Hiệu ứng xuất hiện cho toàn bộ grid */
+.news-grid {
+    animation: fadeIn 1s ease-out;
+}
+
+/* Hiệu ứng xuất hiện */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hiệu ứng xuất hiện từng tin - delay tăng dần */
+.news-item {
+    opacity: 0;
+    animation: itemFadeIn 0.6s ease forwards;
+}
+
+    /* Set delay khác nhau cho mỗi tin */
+    .news-item:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .news-item:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .news-item:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .news-item:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    .news-item:nth-child(5) {
+        animation-delay: 0.5s;
+    }
+
+    .news-item:nth-child(6) {
+        animation-delay: 0.6s;
+    }
+
+    .news-item:nth-child(7) {
+        animation-delay: 0.7s;
+    }
+
+    .news-item:nth-child(8) {
+        animation-delay: 0.8s;
+    }
+
+    .news-item:nth-child(9) {
+        animation-delay: 0.9s;
+    }
+
+@keyframes itemFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

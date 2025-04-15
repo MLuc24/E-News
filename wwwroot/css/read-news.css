@@ -1,0 +1,282 @@
+﻿/* NewsStyle.css */
+
+/* Hiệu ứng chung cho container */
+.news-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    animation: fadeIn 0.8s ease-in-out;
+    background: linear-gradient(135deg, #f9f9f9, #ffffff);
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Style và hiệu ứng cho ảnh tin tức */
+.news-image {
+    transition: all 0.4s ease;
+    transform: perspective(1000px);
+    border-radius: 10px;
+}
+
+    .news-image:hover {
+        transform: perspective(1000px) scale(1.03) rotateX(2deg);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        filter: brightness(1.05);
+    }
+
+/* Style và hiệu ứng cho tiêu đề */
+.custom-title {
+    font-size: 2rem;
+    text-align: left;
+    color: #1a1a1a;
+    margin-bottom: 25px;
+    position: relative;
+    padding-bottom: 15px;
+    transition: color 0.3s ease;
+}
+
+    .custom-title:hover {
+        color: #007bff;
+    }
+
+    .custom-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #007bff, #00c4ff);
+        border-radius: 2px;
+        animation: slideIn 1s ease-out;
+        transition: width 0.3s ease;
+    }
+
+    .custom-title:hover::after {
+        width: 120px;
+    }
+
+@keyframes slideIn {
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 80px;
+    }
+}
+
+/* Style và hiệu ứng cho nội dung */
+.news-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #333;
+    text-align: justify;
+    animation: contentFade 1s ease-in-out;
+    transition: all 0.3s ease;
+}
+
+    .news-content p {
+        margin-left: 20px;
+        position: relative;
+    }
+
+        .news-content p::before {
+            content: '•';
+            color: #007bff;
+            position: absolute;
+            left: -15px;
+            font-size: 1.2rem;
+        }
+
+    .news-content:hover {
+        color: #2c2c2c;
+    }
+
+@keyframes contentFade {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Style và hiệu ứng cho phần thông tin thời gian/tác giả */
+.news-meta {
+    transition: all 0.3s ease;
+}
+
+    .news-meta:hover {
+        color: #007bff;
+        transform: translateX(5px);
+    }
+
+/* Style và hiệu ứng cho nút quay lại */
+.btn-back {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border-radius: 5px;
+}
+
+    .btn-back::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 123, 255, 0.1);
+        transition: all 0.4s ease;
+    }
+
+    .btn-back:hover::before {
+        left: 0;
+    }
+
+    .btn-back:hover {
+        background-color: #007bff;
+        color: white;
+        transform: translateX(-5px);
+    }
+
+/* Style và hiệu ứng cho nút chia sẻ */
+.floating-share-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #007bff, #00c4ff);
+    border: none;
+    transition: all 0.3s ease;
+    animation: pulse 2s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .floating-share-btn:hover {
+        transform: scale(1.15) rotate(5deg);
+        box-shadow: 0 8px 20px rgba(0, 123, 255, 0.5);
+    }
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 15px rgba(0, 123, 255, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
+}
+
+/* Style và hiệu ứng cho modal chia sẻ */
+.share-modal {
+    border-radius: 15px;
+    overflow: hidden;
+    animation: modalPop 0.4s ease-out;
+}
+
+@keyframes modalPop {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    background: linear-gradient(45deg, #007bff, #00c4ff);
+    color: white;
+    border-bottom: none;
+}
+
+.modal-body {
+    padding: 25px;
+    background: #fff;
+}
+
+.btn-share {
+    transition: all 0.3s ease;
+}
+
+    .btn-share:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+    }
+
+/* Style và hiệu ứng cho thông báo thành công */
+.success-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    padding: 15px 25px;
+    background: #28a745;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    animation: slideInRight 0.5s ease-out, fadeOut 0.5s ease-out 2.5s forwards;
+    z-index: 2000;
+}
+
+    .success-notification i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+/* Style cho thông báo lỗi (giữ nguyên nhưng thêm nhẹ hiệu ứng) */
+.alert-danger {
+    animation: fadeIn 0.5s ease-in-out;
+    border-radius: 8px;
+}

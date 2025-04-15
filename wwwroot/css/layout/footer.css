@@ -1,0 +1,385 @@
+﻿/* Updated Footer Background - Softer Blue Gradient */
+.footer-area {
+    background: linear-gradient(135deg, #e0f2ff, #b8dcff);
+    color: #222; /* Deeper text color for better readability */
+    padding: 70px 0 0;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    margin-top: 100px;
+    overflow: hidden;
+}
+
+    .footer-area::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('/images/footer-pattern.png') repeat;
+        opacity: 0.05;
+    }
+
+/* Footer Info */
+.footer-info h3 {
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 30px; /* Increased font size */
+    position: relative;
+    padding-bottom: 12px;
+}
+
+    .footer-info h3::after {
+        content: '';
+        position: absolute;
+        display: block;
+        width: 50px;
+        height: 3px;
+        background: #4facfe;
+        bottom: 0;
+        left: 0;
+    }
+
+.footer-info p {
+    font-size: 16px; /* Increased font size */
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+/* Social Icons */
+.social-icons {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px; /* Slightly larger */
+    height: 48px; /* Slightly larger */
+    border-radius: 50%;
+    color: white;
+    font-size: 19px; /* Slightly larger */
+    transition: all 0.3s ease;
+    transform: translateY(0);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+    .social-icon:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Social Icon Specific Colors */
+    .social-icon.facebook {
+        background: linear-gradient(45deg, #3b5998, #4c6ef5);
+    }
+
+    .social-icon.instagram {
+        background: linear-gradient(45deg, #833AB4, #FD1D1D, #FCB045);
+    }
+
+    .social-icon.zalo {
+        background: linear-gradient(45deg, #0068ff, #00a1ff);
+    }
+
+/* Footer Links */
+.footer-links h4, .footer-newsletter h4 {
+    font-size: 22px; /* Increased font size */
+    position: relative;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+    .footer-links h4::after, .footer-newsletter h4::after {
+        content: '';
+        position: absolute;
+        display: block;
+        width: 40px;
+        height: 3px;
+        background: #4facfe;
+        bottom: 0;
+        left: 0;
+    }
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+    .footer-links ul li {
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Darker separator */
+        transition: all 0.3s ease;
+    }
+
+        .footer-links ul li:first-child {
+            padding-top: 0;
+        }
+
+        .footer-links ul li:hover {
+            padding-left: 8px;
+        }
+
+    .footer-links ul a {
+        color: #222; /* Deeper text color */
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: block;
+        font-size: 16px; /* Increased font size */
+    }
+
+        .footer-links ul a i {
+            margin-right: 10px;
+            color: #0056b3; /* Darker icon color */
+        }
+
+        .footer-links ul a:hover {
+            color: #000; /* Near black on hover */
+        }
+
+/* Newsletter */
+.footer-newsletter p {
+    margin-bottom: 20px;
+    font-size: 16px; /* Increased font size */
+}
+
+/* Enhanced Newsletter Form for Fetch API functionality */
+.newsletter-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.newsletter-form {
+    display: block;
+    position: relative;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+    .newsletter-form .input-group {
+        display: flex;
+        border-radius: 50px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .newsletter-form input[type="email"] {
+        flex: 1;
+        height: 45px;
+        border: none;
+        padding: 0 20px;
+        background: rgba(255, 255, 255, 0.8);
+        color: #222;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.3s ease;
+        border-radius: 50px 0 0 50px;
+    }
+
+        .newsletter-form input[type="email"]::placeholder {
+            color: #888;
+        }
+
+        .newsletter-form input[type="email"]:focus {
+            background: #fff;
+            box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
+        }
+
+.btn-subscribe,
+.btn-unsubscribe {
+    width: 50px;
+    height: 45px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 0 50px 50px 0;
+}
+
+.btn-subscribe {
+    background: linear-gradient(45deg, #4facfe, #00f2fe);
+}
+
+    .btn-subscribe:hover {
+        background: linear-gradient(45deg, #00f2fe, #4facfe);
+    }
+
+.btn-unsubscribe {
+    background: linear-gradient(45deg, #ff7e5f, #feb47b);
+}
+
+    .btn-unsubscribe:hover {
+        background: linear-gradient(45deg, #feb47b, #ff7e5f);
+    }
+
+    .btn-subscribe:disabled,
+    .btn-unsubscribe:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+/* Subscription toggle link */
+#toggleSubscriptionMode {
+    display: inline-block;
+    font-size: 14px;
+    color: #333;
+    text-decoration: none;
+    padding: 5px 0;
+    transition: all 0.3s ease;
+}
+
+    #toggleSubscriptionMode:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+
+/* Subscription result message */
+#subscriptionResult {
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-top: 10px;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.subscription-success {
+    border-left: 3px solid #28a745;
+}
+
+.subscription-error {
+    border-left: 3px solid #dc3545;
+}
+
+/* Footer Bottom */
+.footer-bottom {
+    background: rgba(0, 0, 0, 0.05); /* Lighter background */
+    padding: 20px 0;
+    margin-top: 50px;
+    text-align: center;
+}
+
+
+.copyright {
+    font-size: 15px; /* Increased font size */
+    margin-bottom: 5px;
+}
+
+.credits {
+    font-size: 14px; /* Increased font size */
+}
+
+    .credits a {
+        color: #0056b3;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+        .credits a:hover {
+            color: #003b7a;
+            text-decoration: underline;
+        }
+
+/* App Links */
+.app-links {
+    margin-top: 10px;
+}
+
+    .app-links a {
+        color: #222; /* Deeper text color */
+        font-size: 16px; /* Increased font size */
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+        .app-links a:hover {
+            color: #0056b3;
+        }
+
+/* Footer Wave Animation */
+.footer-wave {
+    position: absolute;
+    top: -20px;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    background-image: url('/images/wave.png');
+    background-size: 1000px 100px;
+    animation: wave 15s linear infinite;
+}
+
+@keyframes wave {
+    0% {
+        background-position-x: 0;
+    }
+
+    100% {
+        background-position-x: 1000px;
+    }
+}
+
+/* Animations for subscription result feedback */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+#subscriptionResult.show {
+    animation: fadeIn 0.3s forwards;
+}
+
+#subscriptionResult.hide {
+    animation: fadeOut 0.3s forwards;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .footer-area {
+        padding: 50px 0 0;
+    }
+
+    .footer-info, .footer-links {
+        margin-bottom: 30px;
+    }
+
+        .footer-links ul li:last-child {
+            border-bottom: none;
+        }
+
+    .newsletter-form input[type="email"] {
+        font-size: 13px;
+        padding: 0 15px;
+    }
+
+    .btn-subscribe,
+    .btn-unsubscribe {
+        width: 45px;
+    }
+}
