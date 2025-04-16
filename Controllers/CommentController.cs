@@ -48,6 +48,8 @@ namespace WebBaoDienTu.Controllers
                         IsAuthenticated = c.User != null,
                         c.CreatedAt,
                         c.UpdatedAt,
+                        IsHidden = c.IsHidden,
+                        UserId = c.UserId,
                         Replies = c.Replies.Where(r => !r.IsDeleted).OrderBy(r => r.CreatedAt).Select(r => new
                         {
                             r.CommentId,
@@ -55,7 +57,9 @@ namespace WebBaoDienTu.Controllers
                             Author = r.User != null ? r.User.FullName : r.GuestName,
                             IsAuthenticated = r.User != null,
                             r.CreatedAt,
-                            r.UpdatedAt
+                            r.UpdatedAt,
+                            IsHidden = r.IsHidden,
+                            UserId = r.UserId
                         }).ToList(),
                         ReplyCount = c.Replies.Count(r => !r.IsDeleted)
                     })
@@ -97,7 +101,8 @@ namespace WebBaoDienTu.Controllers
                     NewsId = model.NewsId,
                     ParentCommentId = model.ParentCommentId,
                     CreatedAt = DateTime.Now,
-                    IsDeleted = false
+                    IsDeleted = false,
+                    IsHidden = false
                 };
 
                 // Handle authenticated vs. guest comments
@@ -131,7 +136,9 @@ namespace WebBaoDienTu.Controllers
                     IsAuthenticated = User.Identity.IsAuthenticated,
                     comment.CreatedAt,
                     IsReply = comment.ParentCommentId.HasValue,
-                    ParentId = comment.ParentCommentId
+                    ParentId = comment.ParentCommentId,
+                    UserId = comment.UserId,
+                    IsHidden = comment.IsHidden
                 };
 
                 return Ok(new { success = true, comment = commentData });
@@ -176,6 +183,86 @@ namespace WebBaoDienTu.Controllers
             }
         }
 
+        [HttpPost("hide/{id}")]
+        [Authorize]
+        public async Task<IActionResult> HideComment(int id)
+        {
+            try
+            {
+                var comment = await _context.Comments
+                    .Include(c => c.News)
+                    .ThenInclude(n => n.Author)
+                    .FirstOrDefaultAsync(c => c.CommentId == id);
+
+                if (comment == null)
+                    return NotFound(new { success = false, message = "Không tìm thấy bình luận." });
+
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var isAdmin = User.IsInRole("Admin");
+
+                // Only admin or the author of the news can hide comments
+                bool isNewsAuthor = false;
+                if (int.TryParse(userIdClaim, out int userId))
+                {
+                    isNewsAuthor = comment.News.AuthorId == userId;
+                }
+
+                if (!isAdmin && !isNewsAuthor)
+                    return Forbid();
+
+                comment.IsHidden = true;
+                _context.Comments.Update(comment);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Bình luận đã được ẩn." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error hiding comment {CommentId}", id);
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi ẩn bình luận." });
+            }
+        }
+
+        [HttpPost("unhide/{id}")]
+        [Authorize]
+        public async Task<IActionResult> UnhideComment(int id)
+        {
+            try
+            {
+                var comment = await _context.Comments
+                    .Include(c => c.News)
+                    .ThenInclude(n => n.Author)
+                    .FirstOrDefaultAsync(c => c.CommentId == id);
+
+                if (comment == null)
+                    return NotFound(new { success = false, message = "Không tìm thấy bình luận." });
+
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var isAdmin = User.IsInRole("Admin");
+
+                // Only admin or the author of the news can unhide comments
+                bool isNewsAuthor = false;
+                if (int.TryParse(userIdClaim, out int userId))
+                {
+                    isNewsAuthor = comment.News.AuthorId == userId;
+                }
+
+                if (!isAdmin && !isNewsAuthor)
+                    return Forbid();
+
+                comment.IsHidden = false;
+                _context.Comments.Update(comment);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Bình luận đã được hiện." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error unhiding comment {CommentId}", id);
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi hiện bình luận." });
+            }
+        }
+
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<IActionResult> DeleteComment(int id)
@@ -186,7 +273,7 @@ namespace WebBaoDienTu.Controllers
                 if (comment == null)
                     return NotFound(new { success = false, message = "Không tìm thấy bình luận." });
 
-                // Check if user owns the comment or is admin
+                // Check if user is admin or owns the comment
                 var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var isAdmin = User.IsInRole("Admin");
 
@@ -208,4 +295,3 @@ namespace WebBaoDienTu.Controllers
         }
     }
 }
-

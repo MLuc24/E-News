@@ -87,7 +87,10 @@ namespace WebBaoDienTu.Controllers
 
                 // Đăng nhập người dùng với sessionId mới
                 await SignInUserAsync(user, model.RememberMe);
-
+                if (user.Profile?.AvatarUrl != null)
+                {
+                    HttpContext.Session.SetString("UserAvatarUrl", user.Profile.AvatarUrl);
+                }
                 return Ok(new { success = true });
             }
             catch (Exception ex)
@@ -481,11 +484,17 @@ namespace WebBaoDienTu.Controllers
                 return BadRequest(new { success = false, message = "Họ tên không được để trống." });
             }
 
-            // Validate email format and existence
+            // Check email format first
+            if (!_emailValidator.IsValidEmail(model.Email))
+            {
+                return BadRequest(new { success = false, message = "Địa chỉ email không đúng định dạng." });
+            }
+
+            // Complete email validation
             bool emailValid = await _emailValidator.ValidateEmail(model.Email);
             if (!emailValid)
             {
-                return BadRequest(new { success = false, message = "Email không tồn tại hoặc không hợp lệ." });
+                return BadRequest(new { success = false, message = "Không thể xác minh địa chỉ email này. Vui lòng sử dụng một địa chỉ email thật." });
             }
 
             // Check if email already exists in system
@@ -498,6 +507,8 @@ namespace WebBaoDienTu.Controllers
 
             return null;
         }
+
+
 
         private void SavePendingRegistration(string normalizedEmail, RegisterViewModel model)
         {
@@ -555,6 +566,16 @@ namespace WebBaoDienTu.Controllers
                 };
 
                 _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                // Create a profile for the user
+                var profile = new UserProfile
+                {
+                    UserId = user.UserId,
+                    CreatedAt = DateTime.Now
+                };
+                _context.UserProfiles.Add(profile);
+
                 _cache.Remove(registrationKey);
             }
             else
@@ -562,9 +583,24 @@ namespace WebBaoDienTu.Controllers
                 // Update existing user's verification status
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && !u.IsEmailVerified);
                 if (user != null)
+                {
                     user.IsEmailVerified = true;
+
+                    // Check if user has a profile, create one if not
+                    var hasProfile = await _context.UserProfiles.AnyAsync(p => p.UserId == user.UserId);
+                    if (!hasProfile)
+                    {
+                        var profile = new UserProfile
+                        {
+                            UserId = user.UserId,
+                            CreatedAt = DateTime.Now
+                        };
+                        _context.UserProfiles.Add(profile);
+                    }
+                }
             }
         }
+
 
         private async Task<bool> TooManyVerificationAttempts(string email)
         {

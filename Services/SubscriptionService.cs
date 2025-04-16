@@ -72,7 +72,7 @@ namespace WebBaoDienTu.Services
         /// <summary>
         /// Xóa đăng ký
         /// </summary>
-        public async Task RemoveSubscriptionAsync(string email, Func<string> getSubscribeUrl)
+        public async Task RemoveSubscriptionAsync(string email, string subscribeUrl)
         {
             var subscription = await _context.Subscriptions.FirstOrDefaultAsync(s => s.UserEmail.ToLower() == email.ToLower());
 
@@ -90,7 +90,7 @@ namespace WebBaoDienTu.Services
                 {
                     try
                     {
-                        await SendUnsubscribeConfirmationEmail(email, getSubscribeUrl());
+                        await SendUnsubscribeConfirmationEmail(email, subscribeUrl);
                         _logger.LogInformation("Unsubscribe confirmation email sent to {Email}", email);
                     }
                     catch (Exception emailEx)
@@ -109,6 +109,7 @@ namespace WebBaoDienTu.Services
                 throw;
             }
         }
+
 
         /// <summary>
         /// Nhập hàng loạt các đăng ký

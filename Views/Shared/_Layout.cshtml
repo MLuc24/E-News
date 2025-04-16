@@ -16,9 +16,36 @@
     <link rel="stylesheet" href="~/css/layout/notification.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/global-button-effects.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/layout/footer.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/profile.css" />
+    @RenderSection("Styles", required: false)
     @Html.AntiForgeryToken()
 </head>
 <body>
+    @{
+        // Clear approach for avatar handling - always get directly from database for current user
+        string avatarUrl = null;
+
+        // Only try to get avatar if user is authenticated
+        if (User.Identity.IsAuthenticated)
+        {
+            // Get the current user ID
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                // Get avatar directly from database every time
+                using (var scope = Context.RequestServices.CreateScope())
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<WebBaoDienTu.Models.BaoDienTuContext>();
+                    var profile = db.UserProfiles.FirstOrDefault(p => p.UserId == userId);
+                    if (profile?.AvatarUrl != null)
+                    {
+                        avatarUrl = profile.AvatarUrl;
+                    }
+                }
+            }
+        }
+    }
+
     <header>
         <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container">
@@ -62,7 +89,14 @@
                         <div class="nav-item dropdown me-2">
                             <a class="nav-link" href="#" id="mobileUserDropdown"
                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle"></i>
+                                @if (!string.IsNullOrEmpty(avatarUrl))
+                                {
+                                    <img src="~/uploads/avatars/@avatarUrl" class="rounded-circle account-avatar" alt="Avatar" style="width: 24px; height: 24px;">
+                                }
+                                else
+                                {
+                                    <i class="fas fa-user-circle"></i>
+                                }
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="mobileUserDropdown">
                                 @if (User.IsInRole("Admin"))
@@ -109,7 +143,7 @@
                     @if (ViewBag.HideNavElements != true)
                     {
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                            @if (ViewBag.Categories is IEnumerable<Category> categories)
+                            @if (ViewBag.Categories is IEnumerable<WebBaoDienTu.Models.Category> categories)
                             {
                                 foreach (var category in categories)
                                 {
@@ -161,9 +195,22 @@
                             <div class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <span class="username d-none d-sm-inline">@(User.Claims.FirstOrDefault(c => c.Type == "DisplayName")?.Value ?? User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? User.Identity.Name)</span>
-                                    <i class="fas fa-user-circle account-icon"></i>
+                                    @if (!string.IsNullOrEmpty(avatarUrl))
+                                    {
+                                        <img src="~/uploads/avatars/@avatarUrl" class="rounded-circle account-avatar" alt="Avatar">
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-user-circle account-icon"></i>
+                                    }
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <!-- Add this item in the user dropdown menu after the user is authenticated -->
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
+                                            <i class="fas fa-user-circle me-2"></i> Hồ sơ cá nhân
+                                        </a>
+                                    </li>
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <li><a class="dropdown-item" asp-controller="AdminNews" asp-action="Index"><i class="fas fa-list"></i> Danh sách tin tức</a></li>
@@ -570,7 +617,7 @@
         </div>
     </footer>
 
-    <!-- Scripts -->
+    <!-- Scripts - Moved here from the Scripts section to avoid errors -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -582,8 +629,6 @@
     <script src="~/js/hover-dropdown.js" asp-append-version="true"></script>
     <script src="~/js/global-button-effects.js" asp-append-version="true"></script>
     <script src="~/js/Subscription/subscribe.js" asp-append-version="true"></script>
-
     @await RenderSectionAsync("Scripts", required: false)
-
 </body>
 </html>

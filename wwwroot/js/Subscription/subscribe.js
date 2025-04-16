@@ -153,6 +153,7 @@ function processSubscription(form) {
 }
 
 // Improved verifyEmailExists function with better error handling
+// Modified verifyEmailExists function to prevent falling back to true on error
 function verifyEmailExists(email, token) {
     return fetch('/api/Auth/VerifyEmailExists', {
         method: 'POST',
@@ -173,10 +174,12 @@ function verifyEmailExists(email, token) {
         })
         .catch(error => {
             console.error("Email verification failed:", error);
-            // Default to true to allow form submission on verification failure
-            return true;
+            // Return false instead of true on errors to prevent accepting invalid emails
+            return false;
         });
 }
+
+
 
 // Process unsubscription form submission
 function processUnsubscription(form) {

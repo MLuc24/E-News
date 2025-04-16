@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Net.Mail;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace WebBaoDienTu.Services
 {
@@ -35,7 +36,7 @@ namespace WebBaoDienTu.Services
                     return false;
                 }
 
-                // Try API validation first
+                // Try API validation first with higher priority
                 string? apiKey = _configuration["EmailVerificationAPI:ApiKey"];
                 if (!string.IsNullOrEmpty(apiKey))
                 {
@@ -43,7 +44,10 @@ namespace WebBaoDienTu.Services
                     {
                         var result = await ValidateEmailWithApi(email, apiKey);
                         if (result.HasValue)
+                        {
+                            _logger.LogInformation("API validation result for {Email}: {Result}", email, result.Value);
                             return result.Value;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -51,14 +55,90 @@ namespace WebBaoDienTu.Services
                     }
                 }
 
-                // Fallback to basic validation
-                return FallbackEmailValidation(email);
+                // Fallback to domain and pattern validation
+                bool domainExists = await VerifyEmailExists(email);
+                if (!domainExists)
+                {
+                    _logger.LogInformation("Email domain does not exist for {Email}", email);
+                    return false;
+                }
+
+                bool hasSuspiciousPattern = CheckSuspiciousPattern(email);
+                if (hasSuspiciousPattern)
+                {
+                    _logger.LogInformation("Email has suspicious pattern: {Email}", email);
+                    return false;
+                }
+
+                // If we made it this far, the email passed all fallback checks
+                return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during email validation: {Email}", email);
-                return FallbackEmailValidation(email);
+                return false;
             }
+        }
+
+        private bool CheckSuspiciousPattern(string email)
+        {
+            string[] emailParts = email.Split('@');
+            if (emailParts.Length != 2) return true;
+
+            string username = emailParts[0];
+            string domain = emailParts[1];
+
+            // Check for random strings of consonants
+            if (HasExcessiveConsecutiveConsonants(username, 5))
+                return true;
+
+            // Check for excessive digits
+            if (CountDigits(username) > 8)
+                return true;
+
+            // Check for random looking patterns (like "asdfgh12345")
+            if (Regex.IsMatch(username, @"[a-z]{5,}[0-9]{5,}"))
+                return true;
+
+            // Domain-specific checks
+            if (domain.ToLower() == "gmail.com")
+            {
+                // Gmail username rules
+                if (username.Length < 6 || username.Length > 30 ||
+                    username.Contains("..") ||
+                    username.StartsWith(".") || username.EndsWith(".") ||
+                    !Regex.IsMatch(username, @"^[a-zA-Z0-9.]+$"))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool HasExcessiveConsecutiveConsonants(string text, int threshold)
+        {
+            var vowels = new[] { 'a', 'e', 'i', 'o', 'u' };
+            int consecutive = 0;
+
+            foreach (char c in text.ToLower())
+            {
+                if (char.IsLetter(c) && !vowels.Contains(c))
+                {
+                    consecutive++;
+                    if (consecutive >= threshold)
+                        return true;
+                }
+                else
+                {
+                    consecutive = 0;
+                }
+            }
+
+            return false;
+        }
+
+        private int CountDigits(string text)
+        {
+            return text.Count(char.IsDigit);
         }
 
         private async Task<bool?> ValidateEmailWithApi(string email, string apiKey)
@@ -72,37 +152,67 @@ namespace WebBaoDienTu.Services
                 var response = await client.GetAsync(apiUrl);
 
                 if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("API returned status code {StatusCode}: {Email}", response.StatusCode, email);
                     return null; // Trigger fallback
+                }
 
                 var content = await response.Content.ReadAsStringAsync();
+                _logger.LogDebug("API response for {Email}: {Response}", email, content);
+
                 using (JsonDocument doc = JsonDocument.Parse(content))
                 {
                     JsonElement root = doc.RootElement;
 
                     // Extract validation details
                     string deliverability = root.TryGetProperty("deliverability", out JsonElement del) ? del.GetString() ?? "" : "";
-                    double qualityScore = root.TryGetProperty("quality_score", out JsonElement score) ?
-                        double.TryParse(score.GetString(), out double parsedScore) ? parsedScore : 0 : 0;
+
+                    double qualityScore = 0;
+                    if (root.TryGetProperty("quality_score", out JsonElement score))
+                    {
+                        if (score.ValueKind == JsonValueKind.String)
+                        {
+                            double.TryParse(score.GetString(), out qualityScore);
+                        }
+                        else if (score.ValueKind == JsonValueKind.Number)
+                        {
+                            qualityScore = score.GetDouble();
+                        }
+                    }
+
                     bool isValidFormat = root.TryGetProperty("is_valid_format", out JsonElement format) &&
                         format.TryGetProperty("value", out JsonElement formatValue) && formatValue.GetBoolean();
+
                     bool isMxFound = root.TryGetProperty("is_mx_found", out JsonElement mx) &&
                         mx.TryGetProperty("value", out JsonElement mxValue) && mxValue.GetBoolean();
 
-                    // Determine deliverability
-                    if (deliverability == "DELIVERABLE" || qualityScore >= 0.7)
+                    bool isDisposable = root.TryGetProperty("is_disposable", out JsonElement disp) &&
+                        disp.TryGetProperty("value", out JsonElement dispValue) && dispValue.GetBoolean();
+
+                    bool isRoleEmail = root.TryGetProperty("is_role_email", out JsonElement role) &&
+                        role.TryGetProperty("value", out JsonElement roleValue) && roleValue.GetBoolean();
+
+                    // Logging for troubleshooting
+                    _logger.LogInformation(
+                        "Email {Email} API check: Deliverability={Deliverability}, Quality={Quality}, " +
+                        "ValidFormat={Format}, MxFound={MX}, Disposable={Disposable}, RoleEmail={Role}",
+                        email, deliverability, qualityScore, isValidFormat, isMxFound, isDisposable, isRoleEmail);
+
+                    // Strict validation rules
+                    if (deliverability == "DELIVERABLE" && qualityScore >= 0.8 && !isDisposable)
                         return true;
 
-                    if (deliverability != "UNDELIVERABLE" && isValidFormat && isMxFound)
-                        return true;
-
-                    if (deliverability == "UNDELIVERABLE" || qualityScore < 0.1)
+                    // Clearly invalid emails
+                    if (deliverability == "UNDELIVERABLE" || qualityScore < 0.5 || isDisposable || !isValidFormat || !isMxFound)
                         return false;
-                }
 
-                return null; // Uncertain result, use fallback
+                    // For ambiguous results (like UNKNOWN, RISKY), fall back to our other checks
+                    return null;
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error during API validation: {Email}", email);
                 return null; // Trigger fallback on any exception
             }
         }
@@ -129,11 +239,16 @@ namespace WebBaoDienTu.Services
                 if (username.Length < 3)
                     return false;
 
-                // Suspicious keywords check
-                if (username.Contains("test") || username.Contains("fake"))
+                // Suspicious keywords check - expanded list
+                string[] suspiciousKeywords = { "test", "fake", "random", "temp", "dummy", "user", "admin", "noreply", "example" };
+                if (suspiciousKeywords.Any(keyword => username.ToLower().Contains(keyword)))
                     return false;
 
-                // Check common domains
+                // Check for excessive numbers in username
+                if (CountDigits(username) > username.Length / 2 && username.Length > 6)
+                    return false;
+
+                // Check common domains with stricter validation
                 string[] commonDomains = {
                     "gmail.com", "outlook.com", "hotmail.com", "yahoo.com",
                     "icloud.com", "aol.com", "proton.me", "protonmail.com",
@@ -149,7 +264,7 @@ namespace WebBaoDienTu.Services
                         if (username.Length < 6 || username.Length > 30)
                             return false;
 
-                        if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^[a-zA-Z0-9.]+$"))
+                        if (!Regex.IsMatch(username, @"^[a-zA-Z0-9.]+$"))
                             return false;
 
                         if (username.Contains(".."))
@@ -158,19 +273,27 @@ namespace WebBaoDienTu.Services
                         if (username.StartsWith(".") || username.EndsWith("."))
                             return false;
 
-                        if (username.Length > 15 &&
-                            System.Text.RegularExpressions.Regex.IsMatch(username, @"[a-z]{3,}\d{5,}"))
+                        if (HasExcessiveConsecutiveConsonants(username, 5))
                             return false;
                     }
+
+                    // Basic checks for other common providers
+                    if (HasExcessiveConsecutiveConsonants(username, 6))
+                        return false;
+
+                    // Regex to catch patterns like "asdfgh123456"
+                    if (Regex.IsMatch(username, @"[a-z]{5,}[0-9]{5,}"))
+                        return false;
 
                     return true;
                 }
 
-                // Non-common domain, just check username length
-                return username.Length >= 3;
+                // Non-common domain - more cautious validation
+                return username.Length >= 3 && !HasExcessiveConsecutiveConsonants(username, 5);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error in fallback email validation: {Email}", email);
                 return false;
             }
         }
@@ -192,41 +315,84 @@ namespace WebBaoDienTu.Services
         }
 
         /// <summary>
-        /// Kiểm tra xem domain email có tồn tại
+        /// Kiểm tra xem domain email có tồn tại - used for MX record checking
         /// </summary>
         public async Task<bool> VerifyEmailExists(string email)
         {
             try
             {
+                _logger.LogInformation("Verifying if email exists: {Email}", email);
+
                 // Tách domain từ email
                 string[] emailParts = email.Split('@');
                 if (emailParts.Length != 2 || string.IsNullOrWhiteSpace(emailParts[1]))
+                {
+                    _logger.LogWarning("Email has invalid format: {Email}", email);
                     return false;
+                }
 
                 string domain = emailParts[1];
+                string username = emailParts[0];
+                _logger.LogInformation("Verifying domain: {Domain}", domain);
 
-                // Kiểm tra xem domain có bản ghi MX không (cho biết nó có thể nhận email)
+                // Check for suspicious or temporary domains
+                string[] suspiciousDomains = {
+                    "tempmail", "temp-mail", "fakeinbox", "mailinator", "yopmail", "guerrillamail",
+                    "dropmail", "throwaway", "mailnesia", "trashmail", "getnada", "spamgourmet"
+                };
+
+                if (suspiciousDomains.Any(s => domain.ToLower().Contains(s)))
+                {
+                    _logger.LogWarning("Suspicious domain detected: {Domain}", domain);
+                    return false;
+                }
+
+                // Check for obviously fake usernames
+                if (CountDigits(username) > 8 || HasExcessiveConsecutiveConsonants(username, 5))
+                {
+                    _logger.LogWarning("Suspicious username pattern detected: {Username}", username);
+                }
+
+                // Perform MX record lookup
                 try
                 {
-                    var lookupClient = new DnsClient.LookupClient();
+                    _logger.LogInformation("Attempting MX lookup for domain: {Domain}", domain);
+                    var lookupClient = new DnsClient.LookupClient(new DnsClient.LookupClientOptions
+                    {
+                        UseCache = true,
+                        Timeout = TimeSpan.FromSeconds(5)
+                    });
+
                     var result = await lookupClient.QueryAsync(domain, DnsClient.QueryType.MX);
-                    return result.Answers.Count > 0;
+                    bool hasMxRecords = result.Answers.Count > 0;
+
+                    _logger.LogInformation("MX lookup for {Domain} - Records found: {HasRecords}",
+                        domain, hasMxRecords);
+
+                    return hasMxRecords;
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Nếu tra cứu DNS thất bại, kiểm tra với danh sách nhà cung cấp email phổ biến
+                    _logger.LogWarning(ex, "DNS lookup failed for {Domain}, falling back to common domain check", domain);
+
+                    // Fallback to common domain list
                     string[] commonDomains = {
                         "gmail.com", "outlook.com", "hotmail.com", "yahoo.com",
                         "icloud.com", "aol.com", "proton.me", "protonmail.com",
                         "mail.com", "yandex.com", "yandex.ru", "zoho.com",
                         "gmx.com", "tutanota.com"
                     };
-                    return commonDomains.Contains(domain.ToLower());
+
+                    bool isDomainCommon = commonDomains.Contains(domain.ToLower());
+                    _logger.LogInformation("Domain {Domain} is in common domain list: {IsCommon}",
+                        domain, isDomainCommon);
+
+                    return isDomainCommon;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error verifying email domain for {Email}", email);
+                _logger.LogError(ex, "Unhandled error verifying email domain for {Email}", email);
                 return false;
             }
         }

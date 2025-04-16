@@ -21,6 +21,9 @@ namespace WebBaoDienTu.Models
         // For tracking deleted comments without removing them
         public bool IsDeleted { get; set; } = false;
 
+        // For hiding comments (by author or admin)
+        public bool IsHidden { get; set; } = false;
+
         // Foreign keys
         public int NewsId { get; set; }
 

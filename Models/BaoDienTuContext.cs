@@ -29,6 +29,9 @@ namespace WebBaoDienTu.Models
         public virtual DbSet<User> Users { get; set; }
 
         public virtual DbSet<VerificationCode> VerificationCodes { get; set; }
+        public virtual DbSet<UserProfile> UserProfiles { get; set; }
+        public virtual DbSet<SocialLogin> SocialLogins { get; set; }
+        public virtual DbSet<UserSession> UserSessions { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -221,6 +224,86 @@ namespace WebBaoDienTu.Models
                 entity.Property(e => e.Email).HasColumnName("Email");
                 entity.Property(e => e.Code).HasColumnName("Code");
             });
+
+            // Configuration for UserProfile
+            modelBuilder.Entity<UserProfile>(entity =>
+            {
+                entity.ToTable("User_Profiles");
+
+                entity.HasKey(e => e.ProfileId);
+
+                entity.Property(e => e.ProfileId).HasColumnName("profile_id");
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.AvatarUrl).HasColumnName("avatar_url").HasMaxLength(500);
+                entity.Property(e => e.PhoneNumber).HasColumnName("phone_number").HasMaxLength(20);
+                entity.Property(e => e.Address).HasColumnName("address").HasMaxLength(255);
+                entity.Property(e => e.DateOfBirth).HasColumnName("date_of_birth");
+                entity.Property(e => e.Bio).HasColumnName("bio").HasMaxLength(500);
+                entity.Property(e => e.Gender).HasColumnName("gender").HasMaxLength(20);
+                entity.Property(e => e.SettingsJson).HasColumnName("settings_json");
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(getdate())");
+
+                entity.HasOne(d => d.User)
+                    .WithOne(p => p.Profile)
+                    .HasForeignKey<UserProfile>(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_UserProfiles_Users");
+            });
+
+            // Configuration for SocialLogin
+            modelBuilder.Entity<SocialLogin>(entity =>
+            {
+                entity.ToTable("Social_Logins");
+
+                entity.HasKey(e => e.SocialLoginId);
+
+                entity.Property(e => e.SocialLoginId).HasColumnName("social_login_id");
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.Provider).HasColumnName("provider").HasMaxLength(20);
+                entity.Property(e => e.ProviderUserId).HasColumnName("provider_user_id").HasMaxLength(100);
+                entity.Property(e => e.ProviderAccessToken).HasColumnName("provider_access_token").HasMaxLength(500);
+                entity.Property(e => e.ProviderRefreshToken).HasColumnName("provider_refresh_token").HasMaxLength(500);
+                entity.Property(e => e.TokenExpiresAt).HasColumnName("token_expires_at");
+                entity.Property(e => e.ProfileDataJson).HasColumnName("profile_data_json");
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(getdate())");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.SocialLogins)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_SocialLogins_Users");
+
+                entity.HasIndex(e => new { e.Provider, e.ProviderUserId })
+                    .IsUnique()
+                    .HasName("UQ_Provider_ProviderId");
+            });
+
+            // Configuration for UserSession
+            modelBuilder.Entity<UserSession>(entity =>
+            {
+                entity.ToTable("User_Sessions");
+
+                entity.HasKey(e => e.SessionId);
+
+                entity.Property(e => e.SessionId).HasColumnName("session_id");
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.Token).HasColumnName("token").HasMaxLength(500);
+                entity.Property(e => e.DeviceInfo).HasColumnName("device_info").HasMaxLength(255);
+                entity.Property(e => e.IpAddress).HasColumnName("ip_address").HasMaxLength(50);
+                entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+                entity.Property(e => e.LastActivity).HasColumnName("last_activity").HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(getdate())");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.UserSessions)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_UserSessions_Users");
+            });
+
 
             OnModelCreatingPartial(modelBuilder);
         }

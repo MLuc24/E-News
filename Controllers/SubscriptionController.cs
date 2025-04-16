@@ -141,15 +141,12 @@ namespace WebBaoDienTu.Controllers
                     return Json(new { success = false, message = "Email này không tồn tại trong danh sách đăng ký." });
                 }
 
-                // Tạo URL đăng ký
-                Func<string> getSubscribeUrl = () =>
-                {
-                    string? url = Url.Action("Subscribe", "Subscription", null, Request.Scheme);
-                    return url ?? $"{Request.Scheme}://{Request.Host}/Subscription/Subscribe";
-                };
+                // Create the subscribe URL string directly
+                string subscribeUrl = Url.Action("Subscribe", "Subscription", null, Request.Scheme)
+                    ?? $"{Request.Scheme}://{Request.Host}/Subscription/Subscribe";
 
-                // Hủy đăng ký
-                await _subscriptionService.RemoveSubscriptionAsync(email, getSubscribeUrl);
+                // Pass the string instead of the function
+                await _subscriptionService.RemoveSubscriptionAsync(email, subscribeUrl);
 
                 return Json(new { success = true, message = "Bạn đã hủy đăng ký thành công." });
             }
@@ -159,6 +156,7 @@ namespace WebBaoDienTu.Controllers
                 return Json(new { success = false, message = "Có lỗi xảy ra khi hủy đăng ký. Vui lòng thử lại sau." });
             }
         }
+
 
         /// <summary>
         /// Xử lý lỗi không tìm thấy endpoint

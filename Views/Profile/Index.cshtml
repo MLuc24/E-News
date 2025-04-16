@@ -1,0 +1,317 @@
+﻿@model WebBaoDienTu.Models.User
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<div class="container mt-5">
+    <!-- Alert kết quả -->
+    <div id="profileAlert" class="alert alert-dismissible fade" role="alert" style="display: none;">
+        <span id="alertMessage"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card profile-card">
+                <div class="profile-header">
+                    <div class="avatar-container position-relative">
+                        @if (Model.Profile?.AvatarUrl != null)
+                        {
+                            <img id="avatarImage" src="~/uploads/avatars/@Model.Profile.AvatarUrl" class="rounded-circle avatar-img" alt="Avatar">
+                            <div class="avatar-overlay">
+                                <button type="button" class="btn btn-light btn-sm rounded-circle" id="changeAvatarBtn">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div id="avatarPlaceholder" class="avatar-placeholder rounded-circle">
+                                @Model.FullName.Substring(0, 1).ToUpper()
+                            </div>
+                            <div class="avatar-overlay">
+                                <button type="button" class="btn btn-light btn-sm rounded-circle" id="changeAvatarBtn">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Input file ẩn cho avatar -->
+                    <input type="file" id="avatarUpload" accept="image/jpeg,image/png,image/gif" style="display: none;">
+                </div>
+
+                <div class="card-body text-center">
+                    <h5 class="card-title">@Model.FullName</h5>
+                    <p class="card-text text-muted">@Model.Email</p>
+                    <div class="profile-status">
+                        <span class="badge bg-success">
+                            <i class="fas fa-user-check me-1"></i> Đã xác minh email
+                        </span>
+                    </div>
+                    <button class="btn btn-primary w-100 mt-3" id="editProfileBtn">
+                        <i class="fas fa-edit me-1"></i> Chỉnh sửa hồ sơ
+                    </button>
+                </div>
+
+                <div class="card-footer text-center text-muted">
+                    <small>Tài khoản từ: @Model.CreatedAt.ToString("dd/MM/yyyy")</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Thông tin cá nhân - Chế độ xem -->
+            <div class="card profile-card mb-4" id="viewProfileCard">
+                <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                    <h4 class="mb-0"><i class="fas fa-user me-2"></i> Thông tin cá nhân</h4>
+                    <button class="btn btn-sm btn-primary" id="showEditBtn">
+                        <i class="fas fa-pen me-1"></i> Chỉnh sửa
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="profile-info-row">
+                        <div class="row align-items-center">
+                            <div class="col-md-3 profile-label">Họ và tên:</div>
+                            <div class="col-md-9" id="displayFullName">@Model.FullName</div>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="row align-items-center">
+                            <div class="col-md-3 profile-label">Email:</div>
+                            <div class="col-md-9">@Model.Email</div>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="row align-items-center">
+                            <div class="col-md-3 profile-label">Số điện thoại:</div>
+                            <div class="col-md-9" id="displayPhoneNumber">@(Model.Profile?.PhoneNumber ?? "Chưa cập nhật")</div>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="row align-items-center">
+                            <div class="col-md-3 profile-label">Địa chỉ:</div>
+                            <div class="col-md-9" id="displayAddress">@(Model.Profile?.Address ?? "Chưa cập nhật")</div>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="row align-items-center">
+                            <div class="col-md-3 profile-label">Ngày sinh:</div>
+                            <div class="col-md-9" id="displayDateOfBirth">
+                                @(Model.Profile?.DateOfBirth.HasValue == true
+                                    ? Model.Profile.DateOfBirth.Value.ToString("dd/MM/yyyy")
+                                    : "Chưa cập nhật")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="row align-items-center">
+                            <div class="col-md-3 profile-label">Giới tính:</div>
+                            <div class="col-md-9" id="displayGender">
+                                @if (Model.Profile?.Gender == "male")
+                                {
+                                    <span>Nam</span>
+                                }
+                                else if (Model.Profile?.Gender == "female")
+                                {
+                                    <span>Nữ</span>
+                                }
+                                else if (Model.Profile?.Gender == "other")
+                                {
+                                    <span>Khác</span>
+                                }
+                                else
+                                {
+                                    <span>Chưa cập nhật</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="row">
+                            <div class="col-md-3 profile-label">Giới thiệu:</div>
+                            <div class="col-md-9" id="displayBio">@(string.IsNullOrEmpty(Model.Profile?.Bio) ? "Chưa cập nhật" : Model.Profile.Bio)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form chỉnh sửa thông tin - Ẩn ban đầu -->
+            <div class="card profile-card mb-4" id="editProfileCard" style="display: none;">
+                <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                    <h4 class="mb-0"><i class="fas fa-pen me-2"></i> Chỉnh sửa thông tin</h4>
+                    <button class="btn btn-sm btn-outline-secondary" id="cancelEditBtn">
+                        <i class="fas fa-times me-1"></i> Hủy
+                    </button>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label for="fullName" class="form-label profile-label">Họ và tên</label>
+                            <input type="text" class="form-control" id="fullName" name="fullName" value="@Model.FullName" required>
+                            <div class="invalid-feedback" id="fullNameFeedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phoneNumber" class="form-label profile-label">Số điện thoại</label>
+                            <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" value="@Model.Profile?.PhoneNumber"
+                                   pattern="^\d{10,11}$" placeholder="Nhập số điện thoại">
+                            <div class="form-text">Định dạng: 10-11 chữ số</div>
+                            <div class="invalid-feedback" id="phoneNumberFeedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label profile-label">Địa chỉ</label>
+                            <input type="text" class="form-control" id="address" name="address" value="@Model.Profile?.Address"
+                                   maxlength="255" placeholder="Nhập địa chỉ">
+                            <div class="invalid-feedback" id="addressFeedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="dateOfBirth" class="form-label profile-label">Ngày sinh</label>
+                            <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth"
+                                   value="@(Model.Profile?.DateOfBirth?.ToString("yyyy-MM-dd"))">
+                            <div class="invalid-feedback" id="dateOfBirthFeedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="gender" class="form-label profile-label">Giới tính</label>
+                            <select class="form-select" id="gender" name="gender">
+                                <option value="" selected="@(Model.Profile?.Gender == null)">Chọn giới tính</option>
+                                <option value="male" selected="@(Model.Profile?.Gender == "male")">Nam</option>
+                                <option value="female" selected="@(Model.Profile?.Gender == "female")">Nữ</option>
+                                <option value="other" selected="@(Model.Profile?.Gender == "other")">Khác</option>
+                            </select>
+                            <div class="invalid-feedback" id="genderFeedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bio" class="form-label profile-label">Giới thiệu bản thân</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3" maxlength="500"
+                                      placeholder="Viết đôi điều về bản thân">@Model.Profile?.Bio</textarea>
+                            <div class="form-text"><span id="bioCounter">0</span>/500 ký tự</div>
+                            <div class="invalid-feedback" id="bioFeedback"></div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="saveProfileBtn">
+                                <i class="fas fa-save me-1"></i> Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Thông tin hoạt động người dùng -->
+            <div class="card profile-card">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i> Hoạt động gần đây</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Đây là nơi bạn có thể hiển thị thông tin hoạt động người dùng nếu có -->
+                    <p class="text-muted text-center">Chức năng đang được phát triển</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xác nhận xóa avatar -->
+<div class="modal fade" id="removeAvatarModal" tabindex="-1" aria-labelledby="removeAvatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeAvatarModalLabel">Xóa ảnh đại diện</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa ảnh đại diện hiện tại?</p>
+                <p class="text-muted">Hành động này không thể hoàn tác.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmRemoveAvatar">
+                    <i class="fas fa-trash-alt me-1"></i> Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal cắt và điều chỉnh ảnh -->
+<div class="modal fade" id="cropAvatarModal" tabindex="-1" aria-labelledby="cropAvatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cropAvatarModalLabel">Điều chỉnh ảnh đại diện</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="img-container">
+                    <img id="cropperImage" src="" alt="Ảnh trước khi cắt">
+                </div>
+                <div class="mt-3 d-flex justify-content-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-secondary" id="rotateLeftBtn" title="Xoay trái">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="rotateRightBtn" title="Xoay phải">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="zoomInBtn" title="Phóng to">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="zoomOutBtn" title="Thu nhỏ">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="resetBtn" title="Khôi phục">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-2 text-center">
+                    <small class="text-muted">Kéo và điều chỉnh để chọn vùng ảnh hiển thị</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="cropAndUploadBtn">
+                    <i class="fas fa-crop me-1"></i> Cắt và lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="~/js/User/profile.js" asp-append-version="true"></script>
+    <script>
+        // Truyền dữ liệu profile từ server sang client
+        const profileData = {
+            fullName: "@Model.FullName",
+            email: "@Model.Email",
+            phoneNumber: "@Model.Profile?.PhoneNumber",
+            address: "@Model.Profile?.Address",
+            dateOfBirth: "@(Model.Profile?.DateOfBirth?.ToString("yyyy-MM-dd"))",
+            gender: "@Model.Profile?.Gender",
+            bio: @Html.Raw(Json.Serialize(Model.Profile?.Bio)),
+            avatarUrl: "@Model.Profile?.AvatarUrl",
+            hasAvatar: @Json.Serialize(Model.Profile?.AvatarUrl != null)
+        };
+    </script>
+}
